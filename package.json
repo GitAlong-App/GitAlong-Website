@@ -3,40 +3,33 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "GitAlong - Find Your Perfect Coding Partner. Connect with developers, collaborate on projects, and stop coding alone.",
+  "description": "GitAlong website — find the developer your project is missing. Intent-based collaborator matching verified by GitHub.",
   "keywords": [
     "developer collaboration",
-    "coding partners",
-    "github integration",
-    "programming community",
-    "software development",
-    "open source",
-    "remote work",
-    "developer networking",
-    "pair programming",
-    "code collaboration",
-    "tech community",
-    "developer tools"
+    "find a co-founder",
+    "side project partner",
+    "open source contributors",
+    "hackathon teammates",
+    "developer mentorship",
+    "github",
+    "collaborator matching"
   ],
   "homepage": "https://gitalong.vercel.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gitalong/website"
+    "url": "https://github.com/GitAlong-App/GitAlong-Website"
   },
-  "author": "GitAlong Team",
+  "author": "Sreevallabh Kakarala (https://github.com/sreevallabh04)",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run type-check && vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
     "@formspree/react": "^3.0.0",
-    "@octokit/rest": "^22.0.0",
     "@supabase/supabase-js": "^2.99.1",
-    "emailjs-com": "^3.2.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",

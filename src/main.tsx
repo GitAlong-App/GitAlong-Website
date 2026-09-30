@@ -1,65 +1,44 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
 
-// Error boundary for production
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false }
+    super(props);
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true }
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0D1117] text-white flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-            <p className="text-gray-400 mb-4">Please refresh the page and try again.</p>
+        <div className="flex min-h-screen items-center justify-center bg-bg px-5 text-ink">
+          <div className="max-w-sm text-center">
+            <img src="/illustrations/thinking_face.png" alt="" width={120} height={120} className="mx-auto" />
+            <h1 className="mt-4 text-h1">Oops, something broke</h1>
+            <p className="mt-2 text-body text-ink-muted">That’s on us. Refresh the page and try again.</p>
             <button
+              type="button"
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-[#2ECC71] rounded-lg hover:bg-[#2ecc71] transition-colors"
+              className="mt-6 inline-flex h-13 items-center justify-center rounded-md bg-green px-6 type-button text-white shadow-edge-green active:translate-y-1 active:shadow-none"
             >
-              Refresh Page
+              Refresh page
             </button>
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
-}
-
-// Performance monitoring
-if (import.meta.env.PROD) {
-  // Report web vitals in production
-  const reportWebVitals = (metric: any) => {
-    console.log('Web Vitals:', metric)
-    // You can send this to your analytics service
-  }
-
-  // Monitor for unhandled errors
-  window.addEventListener('error', (event) => {
-    console.error('Unhandled error:', event.error)
-  })
-
-  // Monitor for unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection:', event.reason)
-  })
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -67,6 +46,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
-  </React.StrictMode>,
-)
-
+  </React.StrictMode>
+);

@@ -1,52 +1,37 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { FOUNDER_GITHUB_URL, GITHUB_REPO_URL, SITE_URL, WEBSITE_REPO_URL } from '../lib/links';
 
 interface StructuredDataProps {
-  type: 'Website' | 'Organization' | 'WebApplication' | 'SoftwareApplication' | 'Article' | 'Person';
-  data: any;
+  type: 'WebSite' | 'Organization' | 'WebApplication' | 'FAQPage' | 'Person';
+  data: Record<string, unknown>;
 }
 
-export const StructuredData: React.FC<StructuredDataProps> = ({ type, data }) => {
-  const generateStructuredData = () => {
-    const baseData = {
-      "@context": "https://schema.org",
-      "@type": type,
-      ...data
-    };
+/**
+ * JSON-LD for search engines. Only factual data: no ratings, reviews, user
+ * counts or other claims that can't be verified.
+ */
+export const StructuredData: React.FC<StructuredDataProps> = ({ type, data }) => (
+  <Helmet>
+    <script type="application/ld+json">{JSON.stringify({ '@context': 'https://schema.org', '@type': type, ...data })}</script>
+  </Helmet>
+);
 
-    return JSON.stringify(baseData);
-  };
+const SITE = SITE_URL;
 
-  return (
-    <Helmet>
-      <script type="application/ld+json">
-        {generateStructuredData()}
-      </script>
-    </Helmet>
-  );
+const founder = {
+  '@type': 'Person',
+  name: 'Sreevallabh Kakarala',
+  url: FOUNDER_GITHUB_URL,
 };
 
-// Pre-defined structured data for common use cases
 export const WebsiteStructuredData: React.FC = () => (
   <StructuredData
-    type="Website"
+    type="WebSite"
     data={{
-      name: "GitAlong",
-      description: "Find your perfect coding partner and collaborate on amazing projects",
-      url: "https://GitAlong.vercel.app",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: "https://GitAlong.vercel.app/about?search={search_term_string}",
-        "query-input": "required name=search_term_string"
-      },
-      publisher: {
-        "@type": "Organization",
-        name: "GitAlong",
-        logo: {
-          "@type": "ImageObject",
-          url: "https://GitAlong.vercel.app/app_icon.jpg"
-        }
-      }
+      name: 'GitAlong',
+      description: 'Intent-based collaborator matching for developers, backed by their real GitHub work.',
+      url: SITE,
     }}
   />
 );
@@ -55,19 +40,12 @@ export const OrganizationStructuredData: React.FC = () => (
   <StructuredData
     type="Organization"
     data={{
-      name: "GitAlong",
-      description: "A platform connecting developers for collaborative coding projects",
-      url: "https://GitAlong.vercel.app",
-      logo: "https://GitAlong.vercel.app/app_icon.jpg",
-      foundingDate: "2024",
-      sameAs: [
-        "https://github.com/sreevallabh04/GitAlong-Website"
-      ],
-      contactPoint: {
-        "@type": "ContactPoint",
-        contactType: "customer service",
-        url: "https://GitAlong.vercel.app/contact"
-      }
+      name: 'GitAlong',
+      description: 'Matches developers with co-founders, contributors, hackathon teammates and mentors based on intent and real GitHub work.',
+      url: SITE,
+      logo: `${SITE}/icon-512.png`,
+      founder,
+      sameAs: [GITHUB_REPO_URL, WEBSITE_REPO_URL],
     }}
   />
 );
@@ -76,21 +54,27 @@ export const WebApplicationStructuredData: React.FC = () => (
   <StructuredData
     type="WebApplication"
     data={{
-      name: "GitAlong",
-      description: "Connect with developers, find coding partners, and collaborate on projects",
-      url: "https://GitAlong.vercel.app",
-      applicationCategory: "DeveloperApplication",
-      operatingSystem: "Web Browser",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD"
-      },
-      author: {
-        "@type": "Organization",
-        name: "GitAlong Team"
-      },
-      screenshot: "https://GitAlong.vercel.app/og-image.png"
+      name: 'GitAlong',
+      description: 'Find the developer your project is missing: say what you are building and who you need, and get matches that explain why.',
+      url: SITE,
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'Web, Android',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      author: founder,
+      image: `${SITE}/og-image.jpg`,
+    }}
+  />
+);
+
+export const FAQStructuredData: React.FC<{ items: Array<{ question: string; answer: string }> }> = ({ items }) => (
+  <StructuredData
+    type="FAQPage"
+    data={{
+      mainEntity: items.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+      })),
     }}
   />
 );

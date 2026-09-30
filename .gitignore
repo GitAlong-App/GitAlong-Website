@@ -127,5 +127,7 @@ tmp/
 temp/
 
 # Keep deployment config files tracked
-!render.yaml
 !vercel.json
+
+.vercel
+.env*

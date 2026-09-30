@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { PageFallback } from '../components/PageFallback';
 
 type GuardProps = {
   children: React.ReactElement;
@@ -15,7 +16,7 @@ export const ProtectedRoute: React.FC<GuardProps> = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
-    return <div className="min-h-screen bg-[#0D1117]" />;
+    return <PageFallback fullScreen />;
   }
 
   if (!currentUser) {
@@ -25,14 +26,11 @@ export const ProtectedRoute: React.FC<GuardProps> = ({ children }) => {
   return children;
 };
 
-export const PublicRoute: React.FC<PublicRouteProps> = ({
-  children,
-  redirectAuthenticatedTo,
-}) => {
+export const PublicRoute: React.FC<PublicRouteProps> = ({ children, redirectAuthenticatedTo }) => {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
-    return <div className="min-h-screen bg-[#0D1117]" />;
+    return <PageFallback fullScreen />;
   }
 
   if (currentUser && redirectAuthenticatedTo) {
@@ -41,4 +39,3 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({
 
   return children;
 };
-

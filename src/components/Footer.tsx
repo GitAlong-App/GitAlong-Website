@@ -1,90 +1,60 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Github, Twitter, Linkedin, Mail, Download } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
+import { AppStoreButton } from './AppStoreButton';
+import { Wordmark } from './Wordmark';
+import { CONTACT_EMAIL, FOUNDER_GITHUB_URL, GITHUB_REPO_URL } from '../lib/links';
+
+const linkClass =
+  'inline-flex min-h-[48px] items-center gap-2 rounded-md text-body font-bold text-ink-muted transition-colors hover:text-green-fg';
 
 export const Footer: React.FC = () => {
-  const handleDownloadApp = () => {
-    toast('The app is not ready to be published yet. Check back in a few months.', {
-      icon: '🚧',
-    });
-  };
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#0D1117] border-t border-[#30363D]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Section */}
-          <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="flex items-center space-x-3 text-white hover:text-green-500 transition-all duration-300 mb-4">
-              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center font-black text-black">
-                GA
-              </div>
-              <span className="text-2xl font-black">GitAlong</span>
-            </Link>
-            <p className="text-gray-400 mb-6 max-w-md">
-              We are building the future of collaborative coding. Find your perfect GitHub match and build amazing projects together.
+    <footer className="border-t-2 border-border bg-surface">
+      <div className="gutter mx-auto max-w-6xl py-12">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <Wordmark />
+            <p className="mt-3 max-w-md text-body text-ink-muted">
+              Find the developer your project is missing — co-founders, contributors, hackathon teammates and mentors, matched on real
+              GitHub work.
             </p>
-            <button
-              onClick={handleDownloadApp}
-              className="inline-flex items-center px-6 py-3 bg-green-500 text-black font-black rounded-xl hover:bg-green-400 transition-all duration-300"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download App
-            </button>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <AppStoreButton platform="android" />
+              <AppStoreButton platform="ios" />
+            </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link to="/" className="text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium">
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium">
-                  Privacy Policy
-                </Link>
-              </li>
+          <nav aria-label="Product">
+            <h2 className="mb-3 type-caption text-ink">Product</h2>
+            <ul className="space-y-1">
+              <li><Link to="/features" className={linkClass}>Features</Link></li>
+              <li><Link to="/faq" className={linkClass}>FAQ</Link></li>
+              <li><Link to="/maintainer" className={linkClass}>For maintainers</Link></li>
+              <li><Link to="/about" className={linkClass}>About</Link></li>
+              <li><Link to="/team" className={linkClass}>Team</Link></li>
+              <li><Link to="/privacy" className={linkClass}>Privacy policy</Link></li>
             </ul>
-          </div>
+          </nav>
 
-          {/* Social Links */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Connect</h3>
-            <ul className="space-y-3">
+          <nav aria-label="Connect">
+            <h2 className="mb-3 type-caption text-ink">Connect</h2>
+            <ul className="space-y-1">
               <li>
-                <a
-                  href="https://github.com/sreevallabh04"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium"
-                >
-                  <Github className="h-4 w-4 mr-2" />
-                  GitHub
+                <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  <Github className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Source on GitHub
                 </a>
               </li>
               <li>
-                <a
-                  href="https://x.com/gothamjest"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium"
-                >
-                  <Twitter className="h-4 w-4 mr-2" />
-                  Twitter
+                <a href={FOUNDER_GITHUB_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  <Github className="h-4 w-4" strokeWidth={2.5} aria-hidden /> @sreevallabh04
+                </a>
+              </li>
+              <li>
+                <a href="https://x.com/gothamjest" target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  <Twitter className="h-4 w-4" strokeWidth={2.5} aria-hidden /> X / Twitter
                 </a>
               </li>
               <li>
@@ -92,50 +62,37 @@ export const Footer: React.FC = () => {
                   href="https://www.linkedin.com/in/sreevallabh-kakarala-52ab8a248/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium"
+                  className={linkClass}
                 >
-                  <Linkedin className="h-4 w-4 mr-2" />
-                  LinkedIn
+                  <Linkedin className="h-4 w-4" strokeWidth={2.5} aria-hidden /> LinkedIn
                 </a>
               </li>
               <li>
-                <a
-                  href="mailto:srivallabhkakarala@gmail.com"
-                  className="flex items-center text-gray-400 hover:text-green-500 transition-colors duration-300 font-medium"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Contact Us
-                </a>
+                <Link to="/contact" className={linkClass}>
+                  <Mail className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Contact
+                </Link>
               </li>
             </ul>
-          </div>
+          </nav>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-[#30363D] mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 GitAlong. All rights reserved.
+        <div className="mt-10 flex flex-col gap-2 border-t-2 border-border pt-6 text-body-sm text-ink-muted md:flex-row md:items-center md:justify-between">
+          <p>© {year} GitAlong. Built by Sreevallabh Kakarala.</p>
+          <p>
+            Questions or data requests:{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="link">
+              {CONTACT_EMAIL}
+            </a>
           </p>
-          <div className="flex items-center space-x-6 mt-4 md:mt-0">
-            <span className="text-gray-400 text-sm">Available on</span>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => window.open('https://apps.apple.com/app/GitAlong', '_blank')}
-                className="text-gray-400 hover:text-green-500 transition-colors duration-300 text-sm font-medium"
-              >
-                App Store
-              </button>
-              <span className="text-gray-600">•</span>
-              <button
-                onClick={() => window.open('https://play.google.com/store/apps/details?id=com.GitAlong.app', '_blank')}
-                className="text-gray-400 hover:text-green-500 transition-colors duration-300 text-sm font-medium"
-              >
-                Google Play
-              </button>
-            </div>
-          </div>
         </div>
+        <p className="mt-3 text-[13px] font-semibold text-ink-subtle">
+          3D illustrations: Fluent Emoji by Microsoft, MIT licence (
+          <a href="/illustrations/LICENSE-fluentui-emoji.txt" className="underline underline-offset-2 hover:text-ink-muted">
+            licence text
+          </a>
+          ). Fonts: Nunito and JetBrains Mono (SIL OFL).
+        </p>
       </div>
     </footer>
   );
-}; 
+};

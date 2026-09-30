@@ -1,225 +1,136 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, Download, ArrowRight } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { useForm, ValidationError } from '@formspree/react';
 import { SEO } from '../components/SEO';
-import toast from 'react-hot-toast';
+import { AppStoreButton } from '../components/AppStoreButton';
+import { PageHero, Section } from '../components/marketing/Section';
+import { Celebration, Illustration, PressableButton, Tile } from '../components/ui';
+import { CONTACT_EMAIL, GITHUB_REPO_URL } from '../lib/links';
+import { inView } from '../lib/motion';
 
 export const ContactPage: React.FC = () => {
-  const [state, handleSubmit] = useForm("xwpbjove");
+  const [state, handleSubmit, reset] = useForm('xwpbjove');
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleDownloadApp = () => {
-    toast('The app is not ready to be published yet. Check back in a few months.', {
-      icon: '🚧',
-    });
-  };
-
-  if (state.succeeded) {
-    return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] rounded-full flex items-center justify-center mx-auto mb-6">
-            <MessageSquare className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-4">Message Sent!</h1>
-          <p className="text-gray-300 text-lg mb-8">
-            Thank you for your message! We'll get back to you as soon as possible.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300"
-          >
-            Send Another Message
-          </button>
-        </motion.div>
-      </div>
-    );
-  }
+  // Clear the fields once Formspree has the message.
+  useEffect(() => {
+    if (state.succeeded) formRef.current?.reset();
+  }, [state.succeeded]);
 
   return (
-    <div className="min-h-screen bg-[#0D1117]">
-      <SEO
-        title="Contact GitAlong - Get in Touch"
-        description="Have questions about GitAlong? Want to collaborate or provide feedback? Contact our team and join the conversation about developer collaboration."
-        keywords="contact GitAlong, developer support, collaboration platform contact, GitAlong feedback, developer community support"
-        url="https://GitAlong.vercel.app/contact"
-        type="website"
+    <div>
+      <SEO title="Contact" description="Questions, feedback, bug reports or data requests — get in touch with GitAlong." url="/contact" />
+      <PageHero
+        eyebrow="Contact"
+        title="Get in touch"
+        intro="Questions, feedback, a bug or a privacy request? Messages go straight to the founder."
+        art={<Illustration name="envelope" size={140} priority className="motion-safe:animate-bob" />}
       />
-      
-      {/* Hero Section */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0D1117] via-[#161B22] to-[#0D1117]"></div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white to-[#2ECC71] bg-clip-text text-transparent">
-              Get in Touch
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Have questions about GitAlong? We'd love to hear from you. 
-              Send us a message and we'll respond as soon as possible.
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Contact Form Section */}
-      <section className="py-20 bg-[#161B22]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl font-bold text-white mb-8">Send us a Message</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
+      <Section>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+          <motion.div {...inView()}>
+            <Tile padding="lg">
+              <h2 className="text-h2 text-ink">Send a message</h2>
+              <form ref={formRef} onSubmit={handleSubmit} className="mt-5 space-y-5">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="name" className="mb-1.5 block type-caption text-ink-muted">
                     Name
                   </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    required
-                    className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-white placeholder-gray-400 focus:border-[#2ECC71] focus:outline-none transition-colors duration-300"
-                    placeholder="Your name"
-                  />
+                  <input type="text" id="name" name="name" required autoComplete="name" className="field" placeholder="Your name" />
                 </div>
-                
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="email" className="mb-1.5 block type-caption text-ink-muted">
                     Email
                   </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                    className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-white placeholder-gray-400 focus:border-[#2ECC71] focus:outline-none transition-colors duration-300"
-                    placeholder="your.email@example.com"
-                  />
-                  <ValidationError 
-                    prefix="Email" 
-                    field="email"
-                    errors={state.errors}
-                    className="text-red-400 text-sm mt-1"
-                  />
+                  <input type="email" id="email" name="email" required autoComplete="email" className="field" placeholder="you@example.com" />
+                  <ValidationError prefix="Email" field="email" errors={state.errors} className="mt-1 block text-body-sm font-bold text-danger-fg" />
                 </div>
-                
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
+                  <label htmlFor="message" className="mb-1.5 block type-caption text-ink-muted">
                     Message
                   </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={5}
-                    className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-white placeholder-gray-400 focus:border-[#2ECC71] focus:outline-none transition-colors duration-300 resize-none"
-                    placeholder="Tell us about your question or feedback..."
-                  />
-                  <ValidationError 
-                    prefix="Message" 
-                    field="message"
-                    errors={state.errors}
-                    className="text-red-400 text-sm mt-1"
-                  />
+                  <textarea id="message" name="message" required rows={5} className="field resize-none" placeholder="Your question or feedback…" />
+                  <ValidationError prefix="Message" field="message" errors={state.errors} className="mt-1 block text-body-sm font-bold text-danger-fg" />
                 </div>
-                
-                <button
-                  type="submit"
-                  disabled={state.submitting}
-                  className="w-full px-8 py-4 bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-[#2ECC71]/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <MessageSquare className="h-5 w-5 mr-2 inline" />
-                  {state.submitting ? 'Sending...' : 'Send Message'}
-                </button>
+                <PressableButton type="submit" fullWidth loading={state.submitting} leadingIcon={<Send strokeWidth={2.75} />}>
+                  {state.submitting ? 'Sending…' : 'Send message'}
+                </PressableButton>
+                <p className="text-[13px] font-semibold text-ink-muted">
+                  The form is delivered via Formspree. See the{' '}
+                  <Link to="/privacy" className="link">
+                    privacy policy
+                  </Link>
+                  .
+                </p>
               </form>
-            </motion.div>
+            </Tile>
+          </motion.div>
 
-            {/* Contact Info */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl font-bold text-white mb-8">Contact Information</h2>
-              
-              <div className="space-y-8">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Mail className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Email</h3>
-                    <p className="text-gray-300">srivallabhkakarala@gmail.com</p>
-                    <p className="text-gray-400 text-sm">We typically respond within 24 hours</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Download className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-2">Download App</h3>
-                    <p className="text-gray-300 mb-4">Get the latest version of GitAlong</p>
-                    <button
-                      onClick={handleDownloadApp}
-                      className="inline-flex items-center px-6 py-3 bg-[#0D1117] border border-[#30363D] text-white font-medium rounded-xl hover:border-[#2ECC71] hover:text-[#2ECC71] transition-all duration-300"
-                    >
-                      Download Now
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </button>
-                  </div>
+          <motion.div {...inView(1)} className="space-y-5">
+            <h2 className="text-h2 text-ink">Other ways to reach us</h2>
+            <Tile className="flex items-start gap-4">
+              <Illustration name="envelope" size={44} />
+              <div className="min-w-0">
+                <h3 className="text-h3 text-ink">Email</h3>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="link break-all">
+                  {CONTACT_EMAIL}
+                </a>
+                <p className="mt-1 text-body-sm text-ink-muted">For data or deletion requests, write from the email on your GitHub account.</p>
+              </div>
+            </Tile>
+            <Tile className="flex items-start gap-4">
+              <Illustration name="test_tube" size={44} />
+              <div>
+                <h3 className="text-h3 text-ink">Bugs & feature ideas</h3>
+                <a href={`${GITHUB_REPO_URL}/issues`} target="_blank" rel="noopener noreferrer" className="link">
+                  Open an issue on GitHub
+                </a>
+              </div>
+            </Tile>
+            <Tile className="flex items-start gap-4">
+              <Illustration name="mobile_phone" size={44} />
+              <div>
+                <h3 className="text-h3 text-ink">Get the app</h3>
+                <p className="mb-4 text-body-sm text-ink-muted">Android beta now; iOS is coming later.</p>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <AppStoreButton platform="android" />
+                  <AppStoreButton platform="ios" />
                 </div>
               </div>
-
-              {/* FAQ Section */}
-              <div className="mt-12 p-8 bg-[#0D1117] rounded-2xl border border-[#30363D]">
-                <h3 className="text-xl font-bold text-white mb-6">Frequently Asked Questions</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-white font-medium mb-2">How does GitAlong work?</h4>
-                    <p className="text-gray-300 text-sm">
-                      GitAlong uses a Tinder-style interface to help developers find collaboration partners. 
-                      Connect your GitHub account, swipe through profiles, and start building together.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium mb-2">How does GitAlong work?</h4>
-                    <p className="text-gray-300 text-sm">
-                      GitAlong connects developers through GitHub integration, helping you find 
-                      collaborators who match your coding style and project interests.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium mb-2">How do I get started?</h4>
-                    <p className="text-gray-300 text-sm">
-                      Simply download the app, connect your GitHub account, and start swiping through 
-                      developer profiles to find your perfect match.
-                    </p>
-                  </div>
-                </div>
+            </Tile>
+            <Tile tone="sky">
+              <h3 className="text-h3 text-ink">Quick answers</h3>
+              <div className="mt-3 space-y-3 text-body-sm text-ink">
+                <p>
+                  <strong className="font-extrabold">How does GitAlong work?</strong> Sign in with GitHub, say what you’re building and who
+                  you need, and swipe through developers matched on intent, complementary skills and real GitHub work. Each card tells you
+                  why you matched.
+                </p>
+                <p>
+                  <strong className="font-extrabold">How do I delete my account?</strong> On the website: Settings → Account → Delete
+                  account. You can also delete it from the Android app.
+                </p>
+                <Link to="/faq" className="link inline-block">
+                  More in the FAQ →
+                </Link>
               </div>
-            </motion.div>
-          </div>
+            </Tile>
+          </motion.div>
         </div>
-      </section>
+      </Section>
+
+      <Celebration
+        open={state.succeeded}
+        onClose={reset}
+        illustration="envelope"
+        title="Message sent!"
+        message="Thanks for writing. You’ll get a reply by email."
+        primaryLabel="Send another"
+        onPrimary={reset}
+      />
     </div>
   );
 };

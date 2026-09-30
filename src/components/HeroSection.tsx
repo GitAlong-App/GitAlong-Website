@@ -1,133 +1,123 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Heart, Users, Zap, Code, GitBranch, Smartphone, Sparkles } from 'lucide-react';
-import AppIcon from '../assets/app_icon.jpg';
+import { Check } from 'lucide-react';
+import { EASE_OUT_BACK, EASE_OUT_CUBIC, usePrefersReducedMotion } from '../lib/motion';
+import type { IllustrationName } from '../lib/illustrations';
+import { Illustration, PressableButton } from './ui';
 
 interface HeroSectionProps {
   onGetStarted: () => void;
-  onLearnMore?: () => void;
+  onSignIn: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted, onLearnMore }) => {
+const Orbit: React.FC<{ art: IllustrationName; className: string; delay: number; label: string }> = ({ art, className, delay, label }) => {
+  const reduced = usePrefersReducedMotion();
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-[#0D1117]"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(46,204,113,0.1),transparent_50%)]"></div>
-      
-      {/* Animated Orbiting Elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(6)].map((_, i) => (
+    <motion.div
+      className={`absolute ${className}`}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.4 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={reduced ? { duration: 0.2 } : { duration: 0.5, delay: 0.35 + delay, ease: EASE_OUT_BACK }}
+    >
+      <div
+        className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border bg-card shadow-edge-tile motion-safe:animate-bob sm:h-[72px] sm:w-[72px]"
+        style={{ animationDelay: `${delay * 2}s` }}
+        title={label}
+      >
+        <Illustration name={art} size={40} priority />
+      </div>
+    </motion.div>
+  );
+};
+
+/** Landing hero (spec §8): Octo, the promise in Display type, GET STARTED / I HAVE AN ACCOUNT. */
+export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted, onSignIn }) => {
+  const reduced = usePrefersReducedMotion();
+  return (
+    <section className="relative overflow-hidden" aria-labelledby="hero-title">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-green-tint/50 via-bg to-bg" />
+      <div className="gutter relative mx-auto grid max-w-6xl items-center gap-8 pb-16 pt-8 md:grid-cols-[1.1fr_0.9fr] md:gap-12 md:pb-24 md:pt-16">
+        <div className="order-2 text-center md:order-1 md:text-left">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: EASE_OUT_CUBIC }}
+            className="mb-4 inline-flex items-center gap-2 rounded-pill border-2 border-green/40 bg-card px-3 py-1.5 type-caption text-green-fg"
+          >
+            <Illustration name="sparkles" size={18} priority /> Collaborator matching for developers
+          </motion.p>
+          <motion.h1
+            id="hero-title"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05, ease: EASE_OUT_CUBIC }}
+            className="text-[40px] font-black leading-[1.04] tracking-[-0.5px] text-ink sm:text-[54px] lg:text-[64px] lg:tracking-[-1px]"
+          >
+            Find the developer your project is <span className="text-green-fg">missing.</span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.1, ease: EASE_OUT_CUBIC }}
+            className="mx-auto mt-5 max-w-xl text-[18px] font-semibold leading-relaxed text-ink-muted md:mx-0 md:text-[20px]"
+          >
+            Say what you’re building and who you need — a co-founder, contributors, a hackathon team or a mentor. GitAlong matches you
+            on real GitHub work and tells you why.
+          </motion.p>
           <motion.div
-            key={i}
-            className="absolute top-1/2 left-1/2 w-1 h-1 bg-green-500 rounded-full opacity-30"
-            animate={{
-              x: [Math.cos(i * 60) * 200, Math.cos(i * 60 + 360) * 200],
-              y: [Math.sin(i * 60) * 200, Math.sin(i * 60 + 360) * 200],
-              scale: [1, 1.5, 1],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 10 + i * 2,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
-        ))}
-      </div>
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.16, ease: EASE_OUT_CUBIC }}
+            className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start"
+          >
+            <PressableButton size="lg" onClick={onGetStarted} className="sm:min-w-[220px]">
+              Get started
+            </PressableButton>
+            <PressableButton size="lg" variant="secondary" onClick={onSignIn} className="sm:min-w-[220px]">
+              I have an account
+            </PressableButton>
+          </motion.div>
+          <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-body-sm font-bold text-ink-muted md:justify-start">
+            {['Free to use', 'Sign in with GitHub', 'Web app + Android beta'].map((t) => (
+              <li key={t} className="flex items-center gap-1.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green text-white">
+                  <Check className="h-3 w-3" strokeWidth={4} aria-hidden />
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, type: "spring" }}
-          className="mb-8"
-        >
-          <div className="relative inline-block">
+        <div className="relative order-1 mx-auto flex h-[300px] w-[300px] items-center justify-center sm:h-[380px] sm:w-[380px] md:order-2">
+          <div aria-hidden className="absolute inset-6 rounded-full bg-green-tint sm:inset-4" />
+          <div aria-hidden className="absolute inset-16 rounded-full border-2 border-dashed border-green/30 sm:inset-14" />
+          <motion.div
+            className="relative"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.3, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={reduced ? { duration: 0.2 } : { type: 'spring', stiffness: 220, damping: 12, delay: 0.1 }}
+          >
+            <Illustration name="octopus" size={176} priority alt="Octo, the GitAlong octopus" className="motion-safe:animate-bob sm:!h-[208px] sm:!w-[208px]" />
+          </motion.div>
+          {/* Static wrapper does the centring; the inner element animates (framer owns its transform). */}
+          <div className="absolute -top-1 left-1/2 w-max max-w-[230px] -translate-x-1/2 sm:top-0">
             <motion.div
-              className="absolute inset-0 bg-green-500/20 blur-2xl rounded-3xl"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            />
-            <img 
-              src={AppIcon} 
-              alt="GitAlong Logo" 
-              className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-3xl shadow-2xl border-2 border-green-500/30"
-            />
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.6, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={reduced ? { duration: 0.2 } : { duration: 0.4, delay: 0.55, ease: EASE_OUT_BACK }}
+              className="relative rounded-lg border-2 border-border bg-card px-4 py-2.5 text-center text-body-sm font-extrabold text-ink shadow-edge-tile"
+            >
+              Hi! I’m Octo. Let’s find your people.
+              <span aria-hidden className="absolute -bottom-[9px] left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-border bg-card" />
+            </motion.div>
           </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
-            <span className="px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-xs sm:text-sm font-bold tracking-wider uppercase">
-              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-2 inline" />
-              Tinder for Developers
-            </span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 tracking-tight">
-            Swipe. Match.
-            <br />
-            <span className="text-green-500 drop-shadow-[0_0_15px_rgba(46,204,113,0.3)]">Collaborate.</span>
-          </h1>
-
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
-            Discover amazing developers who share your tech interests. 
-            Sign in with GitHub, swipe right to connect, and build the future together.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
-        >
-          <button
-            onClick={onGetStarted}
-            className="group w-full sm:w-auto px-10 py-5 bg-green-500 hover:bg-green-400 text-black font-black rounded-2xl text-lg sm:text-xl shadow-[0_0_30px_rgba(46,204,113,0.3)] hover:shadow-[0_0_40px_rgba(46,204,113,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center"
-          >
-            Start Swiping
-            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
-          </button>
-          
-          <button 
-            onClick={onLearnMore}
-            className="w-full sm:w-auto px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-2xl text-lg sm:text-xl transition-all duration-300 backdrop-blur-sm"
-          >
-            How it Works
-          </button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto pt-8 border-t border-white/5"
-        >
-          {[
-            { icon: GitBranch, label: "GitHub OAuth", desc: "One-tap secure login" },
-            { icon: Zap, label: "Real-time Chat", desc: "Powered by Supabase" },
-            { icon: Smartphone, label: "Flutter App", desc: "Beautifully responsive" },
-          ].map((feature, i) => (
-            <div key={i} className="flex flex-col items-center group">
-              <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-green-500/10 transition-colors">
-                <feature.icon className="h-6 w-6 text-green-500" />
-              </div>
-              <h3 className="text-white font-bold mb-1">{feature.label}</h3>
-              <p className="text-gray-500 text-sm whitespace-nowrap">{feature.desc}</p>
-            </div>
-          ))}
-        </motion.div>
+          <Orbit art="rocket" label="Co-founders" className="left-0 top-[38%] sm:left-1" delay={0} />
+          <Orbit art="globe" label="Open source" className="right-0 top-[30%] sm:right-1" delay={0.12} />
+          <Orbit art="handshake" label="Matches" className="bottom-3 left-[14%]" delay={0.24} />
+          <Orbit art="fire" label="Streaks" className="bottom-6 right-[12%]" delay={0.36} />
+        </div>
       </div>
-
-      {/* Floating Blobs */}
-      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-green-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-green-500/5 blur-[120px] rounded-full pointer-events-none"></div>
     </section>
   );
-}; 
+};

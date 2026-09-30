@@ -1,153 +1,152 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, LogIn } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserMenu } from './UserMenu';
 import { AuthModal } from './AuthModal';
-import appIcon from '../assets/app_icon.jpg';
+import { Wordmark } from './Wordmark';
+import { PressableButton, PressableLink, ThemeToggle } from './ui';
+import { EASE_OUT_CUBIC } from '../lib/motion';
 
+const NAV_ITEMS = [
+  { path: '/features', label: 'Features' },
+  { path: '/about', label: 'About' },
+  { path: '/faq', label: 'FAQ' },
+  { path: '/team', label: 'Team' },
+  { path: '/contact', label: 'Contact' },
+];
+
+/** Marketing header: light, sticky, with the Octo wordmark. */
 export const Navigation: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [auth, setAuth] = useState<null | 'signup' | 'signin'>(null);
   const location = useLocation();
   const { currentUser } = useAuth();
 
-  const isActive = (path: string) => location.pathname === path;
+  useEffect(() => setMenuOpen(false), [location.pathname]);
 
-  const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/app/discover', label: 'Discover' },
-    { path: '/features', label: 'Features' },
-    { path: '/about', label: 'About' },
-    { path: '/faq', label: 'FAQ' },
-    { path: '/contact', label: 'Contact' },
-  ];
-
-  const handleAuthClick = () => {
-    setShowAuthModal(true);
-  };
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `inline-flex min-h-[48px] items-center rounded-md px-3 text-[15px] font-extrabold transition-colors ${
+      isActive ? 'bg-green-tint text-green-fg' : 'text-ink-muted hover:bg-surface hover:text-ink'
+    }`;
 
   return (
     <>
-      <nav className="glass border-b border-[#30363D] sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-3 text-white hover:text-green-500 transition-all duration-300 group">
-                <div className="relative">
-                  <img src={appIcon} alt="GitAlong Logo" className="h-12 w-12 rounded-2xl border-2 border-[#30363D] shadow-lg bg-[#161B22] object-cover group-hover:border-green-500 transition-all duration-300" />
-                  <div className="absolute inset-0 bg-green-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <span className="text-2xl font-black tracking-tight">GitAlong</span>
-              </Link>
-            </div>
-            
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-6">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold tracking-wide transition-all duration-300 ${
-                      isActive(item.path)
-                        ? 'text-green-500 bg-green-500/10 border border-green-500/20'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
+      <header className="sticky top-0 z-40 border-b-2 border-border bg-bg/90 backdrop-blur supports-[backdrop-filter]:bg-bg/80">
+        <div className="gutter mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-3">
+          <Wordmark priority />
 
-            <div className="hidden md:flex items-center space-x-4">
-              {currentUser ? (
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+            {NAV_ITEMS.map((item) => (
+              <NavLink key={item.path} to={item.path} className={linkClass}>
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="hidden items-center gap-2 md:flex">
+            <ThemeToggle />
+            {currentUser ? (
+              <>
+                <PressableLink to="/app/discover" size="sm" fullWidth={false}>
+                  Open app
+                </PressableLink>
                 <UserMenu />
-              ) : (
-                <>
-                  <button
-                    onClick={handleAuthClick}
-                    className="flex items-center px-4 py-2 text-gray-300 hover:text-white transition-all duration-300 hover:scale-105"
-                  >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
-                  </button>
-                  <button
-                    onClick={handleAuthClick}
-                    className="btn-primary"
-                  >
-                    Get Started
-                  </button>
-                </>
-              )}
-            </div>
+              </>
+            ) : (
+              <>
+                <PressableButton variant="ghost" size="sm" fullWidth={false} onClick={() => setAuth('signin')}>
+                  Sign in
+                </PressableButton>
+                <PressableButton size="sm" fullWidth={false} onClick={() => setAuth('signup')}>
+                  Get started
+                </PressableButton>
+              </>
+            )}
+          </div>
 
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center justify-center p-3 rounded-xl text-gray-300 hover:text-white hover:bg-[#30363D] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 transition-all duration-300"
-              >
-                {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full text-ink hover:bg-surface"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {menuOpen ? <X className="h-6 w-6" strokeWidth={3} aria-hidden /> : <Menu className="h-6 w-6" strokeWidth={3} aria-hidden />}
+            </button>
           </div>
         </div>
 
-        {isOpen && (
-          <div className="md:hidden">
-            <div className="px-4 pt-4 pb-6 space-y-2 bg-[#161B22] border-t border-[#30363D]">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`block px-4 py-3 rounded-xl text-base font-bold transition-all duration-300 ${
-                    isActive(item.path)
-                      ? 'text-green-500 bg-green-500/10 border border-green-500/20'
-                      : 'text-gray-400 hover:text-white hover:bg-[#30363D]'
-                  }`}
+        {/* Tablet: links row under the bar */}
+        <nav className="gutter mx-auto hidden max-w-6xl items-center gap-1 pb-2 md:flex lg:hidden" aria-label="Main">
+          {NAV_ITEMS.map((item) => (
+            <NavLink key={item.path} to={item.path} className={linkClass}>
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              id="mobile-menu"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: EASE_OUT_CUBIC }}
+              className="border-t-2 border-border bg-bg md:hidden"
+            >
+              <nav className="gutter space-y-1 py-4" aria-label="Main">
+                {NAV_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex min-h-[52px] items-center rounded-md px-4 text-[17px] font-extrabold ${
+                        isActive ? 'bg-green-tint text-green-fg' : 'text-ink hover:bg-surface'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+                <NavLink
+                  to="/maintainer"
+                  className={({ isActive }) =>
+                    `flex min-h-[52px] items-center rounded-md px-4 text-[17px] font-extrabold ${
+                      isActive ? 'bg-green-tint text-green-fg' : 'text-ink hover:bg-surface'
+                    }`
+                  }
                 >
-                  {item.label}
-                </Link>
-              ))}
-              
-              <div className="border-t border-[#30363D] pt-4 mt-4">
+                  For maintainers
+                </NavLink>
+              </nav>
+              <div className="gutter flex flex-col gap-3 border-t-2 border-border py-4">
                 {currentUser ? (
-                  <div className="px-4 py-2">
-                    <UserMenu />
-                  </div>
+                  <PressableLink to="/app/discover" fullWidth>
+                    Open the app
+                  </PressableLink>
                 ) : (
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => {
-                        handleAuthClick();
-                        setIsOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-3 text-gray-300 hover:text-white hover:bg-[#30363D] rounded-xl transition-all duration-300"
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleAuthClick();
-                        setIsOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-3 btn-primary"
-                    >
-                      Get Started
-                    </button>
-                  </div>
+                  <>
+                    <PressableButton fullWidth onClick={() => setAuth('signup')}>
+                      Get started
+                    </PressableButton>
+                    <PressableButton variant="secondary" fullWidth onClick={() => setAuth('signin')}>
+                      I have an account
+                    </PressableButton>
+                  </>
                 )}
               </div>
-            </div>
-          </div>
-        )}
-      </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
+      <AuthModal isOpen={auth !== null} mode={auth ?? 'signup'} onClose={() => setAuth(null)} />
     </>
   );
 };

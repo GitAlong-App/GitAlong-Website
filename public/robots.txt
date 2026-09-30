@@ -18,6 +18,9 @@ Allow: /contact
 Allow: /privacy
 Allow: /features
 Allow: /team
+Allow: /faq
+Allow: /maintainer
+Disallow: /app/
 
 # Allow crawling of static assets
 Allow: /assets/

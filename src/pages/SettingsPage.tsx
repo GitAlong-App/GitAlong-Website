@@ -1,607 +1,293 @@
 import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useAuth } from '../contexts/AuthContext';
+import { Download, Info, LogOut, Monitor, Moon, Sun, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { SEO } from '../components/SEO';
-import { Breadcrumbs, BreadcrumbStructuredData } from '../components/Breadcrumbs';
-import { 
-  Settings, 
-  User, 
-  Bell, 
-  Shield, 
-  Palette, 
-  Smartphone, 
-  Globe, 
-  Download,
-  Moon,
-  Sun,
-  Monitor,
-  ToggleLeft,
-  ToggleRight,
-  Save,
-  RefreshCw,
-  Trash2,
-  Eye,
-  EyeOff,
-  Mail,
-  Github
-} from 'lucide-react';
+import { ProfileEditor } from '../components/ProfileEditor';
+import { Illustration, Modal, PressableButton, SegmentedTabs, Switch, Tile } from '../components/ui';
+import { useAuth } from '../contexts/AuthContext';
+import { ThemePreference, useTheme } from '../contexts/ThemeContext';
+import { supabase } from '../lib/supabase';
+import { fadeUp } from '../lib/motion';
+import { deleteMyAccount, exportMyData } from '../services/dataService';
+import { audioEngine } from '../utils/audio';
 
-export const SettingsPage: React.FC = () => {
-  const { currentUser, githubUserData, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('account');
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    projectUpdates: true,
-    newMessages: true,
-    weeklyDigest: false
-  });
-  const [privacy, setPrivacy] = useState({
-    profileVisibility: 'public',
-    showEmail: false,
-    showLocation: true,
-    allowMessages: true
-  });
-  const [theme, setTheme] = useState('system');
-  const [language, setLanguage] = useState('en');
-  const [showPassword, setShowPassword] = useState(false);
-  const [developerMode, setDeveloperMode] = useState(false);
+type TabId = 'profile' | 'account' | 'preferences';
 
-  const tabs = [
-    { id: 'account', label: 'Account', icon: User },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'privacy', label: 'Privacy', icon: Shield },
-    { id: 'appearance', label: 'Appearance', icon: Palette },
-    { id: 'advanced', label: 'Advanced', icon: Settings },
-  ];
+const tabs: Array<{ value: TabId; label: string }> = [
+  { value: 'profile', label: 'Profile' },
+  { value: 'account', label: 'Account' },
+  { value: 'preferences', label: 'Preferences' },
+];
+
+const GroupTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <h2 className="mb-3 mt-8 type-caption text-ink-muted first:mt-0">{children}</h2>
+);
+
+// ─── Account & data ──────────────────────────────────────────────────────────
+
+const AccountTab: React.FC = () => {
+  const { currentUser, profile, logout } = useAuth();
+  const navigate = useNavigate();
+  const [exporting, setExporting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const confirmPhrase = profile?.username || 'delete my account';
 
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
+      navigate('/');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Sign out failed.');
     }
   };
 
-  const handleSaveSettings = () => {
-    // Save settings to localStorage for persistence
-    const settingsData = {
-      notifications,
-      privacy,
-      theme,
-      language,
-      timestamp: new Date().toISOString()
-    };
-    
+  const handleExport = async () => {
+    if (!currentUser) return;
+    setExporting(true);
     try {
-      localStorage.setItem('GitAlong-settings', JSON.stringify(settingsData));
-      
-      // Show success feedback
-      const saveButton = document.querySelector('[data-save-settings]') as HTMLButtonElement;
-      if (saveButton) {
-        const originalText = saveButton.innerHTML;
-        saveButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Saved!';
-        saveButton.disabled = true;
-        saveButton.className = 'flex items-center gap-2 px-6 py-3 bg-[#2ECC71] text-white rounded-xl cursor-not-allowed';
-        
-        setTimeout(() => {
-          saveButton.innerHTML = originalText;
-          saveButton.disabled = false;
-          saveButton.className = 'flex items-center gap-2 px-6 py-3 bg-[#2ECC71] text-white rounded-xl hover:bg-[#2ecc71] transition-colors';
-        }, 2000);
-      }
-      
-      console.log('Settings saved:', settingsData);
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-      alert('Failed to save settings. Please try again.');
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      try {
-        // Delete user data from localStorage
-        localStorage.removeItem('GitAlong-settings');
-        localStorage.removeItem('GitAlong-user-data');
-        
-        // Sign out the user
-        await logout();
-        
-        // Show confirmation
-        alert('Account deleted successfully. You have been signed out.');
-      } catch (error) {
-        console.error('Failed to delete account:', error);
-        alert('Failed to delete account. Please try again.');
-      }
-    }
-  };
-
-  const handleExportData = () => {
-    try {
-      // Collect user data for export
-      const exportData = {
-        user: {
-          email: currentUser?.email,
-          displayName: githubUserData?.name || githubUserData?.login,
-          githubData: githubUserData
-        },
-        settings: {
-          notifications,
-          privacy,
-          theme,
-          language
-        },
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-      };
-
-      // Create and download JSON file
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
+      const data = await exportMyData(currentUser.id);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `GitAlong-data-${new Date().toISOString().split('T')[0]}.json`;
+      link.download = `gitalong-data-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
       URL.revokeObjectURL(url);
-
-      // Show success feedback
-      const exportButton = document.querySelector('[data-export-data]') as HTMLButtonElement;
-      if (exportButton) {
-        const originalText = exportButton.innerHTML;
-        exportButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Exported!';
-        exportButton.disabled = true;
-        
-        setTimeout(() => {
-          exportButton.innerHTML = originalText;
-          exportButton.disabled = false;
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Failed to export data:', error);
-      alert('Failed to export data. Please try again.');
+      toast.success('Your data export has downloaded.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not export your data.');
+    } finally {
+      setExporting(false);
     }
   };
 
-  const handleClearCache = () => {
-    if (window.confirm('Are you sure you want to clear all cached data? This will refresh the app.')) {
+  const handleDelete = async () => {
+    if (confirmText.trim() !== confirmPhrase) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteMyAccount();
+      // The auth user no longer exists; just drop the local session.
       try {
-        // Clear localStorage except for essential data
-        const essentialKeys = ['GitAlong-settings', 'GitAlong-user-data'];
-        const keysToRemove = [];
-        
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && !essentialKeys.includes(key)) {
-            keysToRemove.push(key);
-          }
-        }
-        
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        // Clear sessionStorage
-        sessionStorage.clear();
-        
-        // Show success feedback
-        const clearButton = document.querySelector('[data-clear-cache]') as HTMLButtonElement;
-        if (clearButton) {
-          const originalText = clearButton.innerHTML;
-          clearButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Cleared!';
-          clearButton.disabled = true;
-          
-          setTimeout(() => {
-            clearButton.innerHTML = originalText;
-            clearButton.disabled = false;
-          }, 2000);
-        }
-        
-        // Reload the page after a short delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-        
-      } catch (error) {
-        console.error('Failed to clear cache:', error);
-        alert('Failed to clear cache. Please try again.');
+        await supabase?.auth.signOut({ scope: 'local' });
+      } catch {
+        // ignore
       }
-    }
-  };
-
-  const handleToggleDeveloperMode = () => {
-    setDeveloperMode(!developerMode);
-    
-    if (!developerMode) {
-      // Enable developer mode
-      localStorage.setItem('GitAlong-developer-mode', 'true');
-      console.log('Developer mode enabled');
-      
-      // Show developer tools info
-      setTimeout(() => {
-        alert('Developer mode enabled! You can now access advanced debugging features.');
-      }, 100);
-    } else {
-      // Disable developer mode
-      localStorage.removeItem('GitAlong-developer-mode');
-      console.log('Developer mode disabled');
+      setDeleteOpen(false);
+      toast.success('Your GitAlong account and data have been deleted.', { duration: 8000 });
+      navigate('/', { replace: true });
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Your account could not be deleted. Please try again.');
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0D1117]">
-      <SEO
-        title="Settings – GitAlong"
-        description="Manage your GitAlong account settings, notifications, and preferences."
-        url="https://GitAlong.vercel.app/app/settings"
-        type="website"
+    <div>
+      <GroupTitle>Account</GroupTitle>
+      <Tile className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Illustration name="key" size={44} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-h3 text-ink">Signed in with GitHub</h3>
+          <p className="text-body-sm text-ink-muted">
+            {profile ? (
+              <>
+                <span className="font-extrabold text-ink">@{profile.username}</span>
+                {profile.email ? <> · {profile.email} (only visible to you)</> : null}
+              </>
+            ) : (
+              currentUser?.email ?? 'GitHub account'
+            )}
+          </p>
+        </div>
+        <PressableButton variant="secondary" size="sm" leadingIcon={<LogOut strokeWidth={2.75} />} onClick={() => void handleLogout()}>
+          Sign out
+        </PressableButton>
+      </Tile>
+
+      <GroupTitle>Your data</GroupTitle>
+      <Tile className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Illustration name="envelope" size={44} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-h3 text-ink">Export your data</h3>
+          <p className="text-body-sm text-ink-muted">
+            Download a JSON copy of your profile, swipes, matches, messages, saved repositories, blocks and reports.
+          </p>
+        </div>
+        <PressableButton size="sm" leadingIcon={<Download strokeWidth={2.75} />} loading={exporting} onClick={() => void handleExport()}>
+          Export data
+        </PressableButton>
+      </Tile>
+
+      <GroupTitle>Danger zone</GroupTitle>
+      <Tile tone="danger" className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Illustration name="collision" size={44} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-h3 text-danger-fg">Delete account</h3>
+          <p className="text-body-sm text-ink">
+            Permanently deletes your GitAlong account: your profile, swipes, matches, messages, saved repositories, blocks and reports.
+            This also removes your account from the mobile app. It can’t be undone. Your GitHub account is not affected.
+          </p>
+        </div>
+        <PressableButton
+          variant="danger"
+          size="sm"
+          leadingIcon={<Trash2 strokeWidth={2.75} />}
+          onClick={() => {
+            setConfirmText('');
+            setDeleteError(null);
+            setDeleteOpen(true);
+          }}
+        >
+          Delete…
+        </PressableButton>
+      </Tile>
+
+      <Modal
+        open={deleteOpen}
+        title="Delete your GitAlong account?"
+        onClose={() => setDeleteOpen(false)}
+        busy={deleting}
+        illustration="collision"
+        footer={
+          <>
+            <PressableButton variant="secondary" size="sm" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+              Cancel
+            </PressableButton>
+            <PressableButton
+              variant="danger"
+              size="sm"
+              onClick={() => void handleDelete()}
+              disabled={confirmText.trim() !== confirmPhrase}
+              loading={deleting}
+            >
+              Permanently delete
+            </PressableButton>
+          </>
+        }
+      >
+        <p className="mb-4">
+          All of your GitAlong data will be permanently deleted, including your conversations — they disappear for your matches too.
+        </p>
+        <label className="block">
+          <span className="text-body-sm font-bold text-ink">
+            Type <span className="rounded bg-surface px-1.5 py-0.5 font-mono text-ink">{confirmPhrase}</span> to confirm:
+          </span>
+          <input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            disabled={deleting}
+            className="field mt-2 font-mono"
+          />
+        </label>
+        {deleteError && (
+          <p className="mt-3 rounded-md border-2 border-danger bg-danger-tint p-3 text-body-sm font-bold text-ink" role="alert">
+            {deleteError}
+          </p>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+// ─── Preferences (this browser only) ─────────────────────────────────────────
+
+const PreferencesTab: React.FC = () => {
+  const [sounds, setSounds] = useState(audioEngine.isEnabled());
+  const { preference, setPreference } = useTheme();
+
+  return (
+    <div>
+      <p className="mb-5 text-body-sm text-ink-muted">These preferences are saved in this browser only.</p>
+      <GroupTitle>Appearance</GroupTitle>
+      <Tile className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Illustration name="artist_palette" size={44} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-h3 text-ink">Theme</h3>
+          <p className="text-body-sm text-ink-muted">Follow your device, or pick light or dark.</p>
+        </div>
+        <SegmentedTabs<ThemePreference>
+          kind="radio"
+          ariaLabel="Theme"
+          value={preference}
+          onChange={setPreference}
+          options={[
+            { value: 'system', label: 'Auto', icon: <Monitor strokeWidth={2.75} /> },
+            { value: 'light', label: 'Light', icon: <Sun strokeWidth={2.75} /> },
+            { value: 'dark', label: 'Dark', icon: <Moon strokeWidth={2.75} /> },
+          ]}
+        />
+      </Tile>
+
+      <GroupTitle>Sound</GroupTitle>
+      <Tile className="flex items-center gap-4">
+        <Illustration name="bell" size={44} />
+        <div className="min-w-0 flex-1">
+          <h3 className="text-h3 text-ink">Interface sounds</h3>
+          <p className="text-body-sm text-ink-muted">Soft click and hover sounds on buttons and links.</p>
+        </div>
+        <Switch
+          checked={sounds}
+          label="Interface sounds"
+          onChange={(v) => {
+            audioEngine.setEnabled(v);
+            setSounds(v);
+          }}
+        />
+      </Tile>
+
+      <GroupTitle>Notifications</GroupTitle>
+      <Tile tone="sky" className="flex gap-3">
+        <Info className="mt-0.5 h-5 w-5 shrink-0 text-sky-fg" strokeWidth={2.75} aria-hidden />
+        <p className="text-body-sm text-ink">
+          The website doesn’t send email or push notifications. New matches and messages show up here in real time, and the Android
+          app shows match notifications.
+        </p>
+      </Tile>
+    </div>
+  );
+};
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
+export const SettingsPage: React.FC = () => {
+  const [params, setParams] = useSearchParams();
+  const requested = params.get('tab') as TabId | null;
+  const activeTab: TabId = tabs.some((t) => t.value === requested) ? (requested as TabId) : 'profile';
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 pt-5 sm:px-6 md:pt-8">
+      <SEO title="Settings – GitAlong" description="Edit your GitAlong profile and manage your account." url="/app/settings" noIndex />
+
+      <SegmentedTabs<TabId>
+        ariaLabel="Settings sections"
+        value={activeTab}
+        onChange={(id) => setParams(id === 'profile' ? {} : { tab: id })}
+        options={tabs.map((t) => ({ ...t, controls: 'settings-panel' }))}
+        fullWidth
       />
 
-      <section className="py-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0D1117] via-[#161B22] to-[#0D1117]" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#2ECC71]/10 to-transparent" />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Breadcrumbs items={[{ label: 'Settings', isActive: true }]} />
-          <BreadcrumbStructuredData items={[{ label: 'Settings', href: '/app/settings' }]} />
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="mb-8"
-          >
-            <h1 className="text-4xl font-bold text-white mb-2">Settings</h1>
-            <p className="text-gray-400">Manage your account preferences and app settings</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="lg:col-span-1"
-            >
-              <div className="bg-[#161B22] rounded-2xl border border-[#30363D] p-4">
-                <nav className="space-y-2">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300 ${
-                          activeTab === tab.id
-                            ? 'bg-[#2ECC71]/10 border border-[#2ECC71]/20 text-[#2ECC71]'
-                            : 'text-gray-300 hover:text-white hover:bg-[#30363D]'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="font-medium">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-            </motion.div>
-
-            {/* Main Content */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="lg:col-span-3"
-            >
-              <div className="bg-[#161B22] rounded-2xl border border-[#30363D] p-6">
-                {/* Account Settings */}
-                {activeTab === 'account' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <User className="w-6 h-6 text-[#2ECC71]" />
-                      <h2 className="text-2xl font-bold text-white">Account Settings</h2>
-                    </div>
-
-                    {/* Profile Info */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-white">Profile Information</h3>
-                      
-                      {currentUser && githubUserData ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Display Name</label>
-                            <input
-                              type="text"
-                              defaultValue={githubUserData.name || githubUserData.login}
-                              className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-white placeholder-gray-500 focus:border-[#2ECC71] focus:outline-none transition-colors"
-                              placeholder="Enter display name"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
-                            <input
-                              type="text"
-                              defaultValue={githubUserData.login}
-                              disabled
-                              className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-gray-500 cursor-not-allowed"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                            <input
-                              type="email"
-                              defaultValue={githubUserData.email || currentUser.email || ''}
-                              className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-white placeholder-gray-500 focus:border-[#2ECC71] focus:outline-none transition-colors"
-                              placeholder="Enter email address"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
-                            <textarea
-                              defaultValue={githubUserData.bio || ''}
-                              rows={3}
-                              className="w-full px-4 py-3 bg-[#0D1117] border border-[#30363D] rounded-xl text-white placeholder-gray-500 focus:border-[#2ECC71] focus:outline-none transition-colors resize-none"
-                              placeholder="Tell us about yourself"
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-8">
-                          <Github className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                          <p className="text-gray-400">Sign in with GitHub to manage your profile</p>
-                        </div>
-                      )}
-
-                      {/* Account Actions */}
-                      <div className="pt-6 border-t border-[#30363D]">
-                        <h3 className="text-lg font-semibold text-white mb-4">Account Actions</h3>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                          <button
-                            onClick={handleLogout}
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-[#30363D] text-white rounded-xl hover:bg-[#484F58] transition-colors"
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                            Sign Out
-                          </button>
-                          <button
-                            onClick={handleDeleteAccount}
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-red-600/10 border border-red-600/20 text-red-400 rounded-xl hover:bg-red-600/20 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete Account
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Notifications */}
-                {activeTab === 'notifications' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Bell className="w-6 h-6 text-[#2ECC71]" />
-                      <h2 className="text-2xl font-bold text-white">Notification Settings</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      {Object.entries(notifications).map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                          <div>
-                            <h3 className="font-medium text-white capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                            </h3>
-                            <p className="text-sm text-gray-400">
-                              {key === 'email' && 'Receive notifications via email'}
-                              {key === 'push' && 'Receive push notifications on your device'}
-                              {key === 'projectUpdates' && 'Get notified about project updates'}
-                              {key === 'newMessages' && 'Receive notifications for new messages'}
-                              {key === 'weeklyDigest' && 'Get a weekly summary of your activity'}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setNotifications(prev => ({ ...prev, [key]: !value }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              value ? 'bg-[#2ECC71]' : 'bg-[#30363D]'
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                value ? 'translate-x-6' : 'translate-x-1'
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Privacy */}
-                {activeTab === 'privacy' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Shield className="w-6 h-6 text-[#2ECC71]" />
-                      <h2 className="text-2xl font-bold text-white">Privacy Settings</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                        <h3 className="font-medium text-white mb-2">Profile Visibility</h3>
-                        <p className="text-sm text-gray-400 mb-3">Control who can see your profile information</p>
-                        <select
-                          value={privacy.profileVisibility}
-                          onChange={(e) => setPrivacy(prev => ({ ...prev, profileVisibility: e.target.value }))}
-                          className="w-full px-4 py-2 bg-[#161B22] border border-[#30363D] rounded-lg text-white focus:border-[#2ECC71] focus:outline-none"
-                        >
-                          <option value="public">Public - Anyone can see your profile</option>
-                          <option value="private">Private - Only you can see your profile</option>
-                          <option value="friends">Friends - Only your connections can see</option>
-                        </select>
-                      </div>
-
-                      {Object.entries(privacy).filter(([key]) => key !== 'profileVisibility').map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                          <div>
-                            <h3 className="font-medium text-white capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                            </h3>
-                            <p className="text-sm text-gray-400">
-                              {key === 'showEmail' && 'Display your email address on your profile'}
-                              {key === 'showLocation' && 'Show your location on your profile'}
-                              {key === 'allowMessages' && 'Allow other users to send you messages'}
-                            </p>
-                          </div>
-                          <button
-                            onClick={() => setPrivacy(prev => ({ ...prev, [key]: !value }))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              value ? 'bg-[#2ECC71]' : 'bg-[#30363D]'
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                value ? 'translate-x-6' : 'translate-x-1'
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Appearance */}
-                {activeTab === 'appearance' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Palette className="w-6 h-6 text-[#2ECC71]" />
-                      <h2 className="text-2xl font-bold text-white">Appearance</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                        <h3 className="font-medium text-white mb-2">Theme</h3>
-                        <p className="text-sm text-gray-400 mb-3">Choose your preferred theme</p>
-                        <div className="grid grid-cols-3 gap-3">
-                          {[
-                            { value: 'light', icon: Sun, label: 'Light' },
-                            { value: 'dark', icon: Moon, label: 'Dark' },
-                            { value: 'system', icon: Monitor, label: 'System' }
-                          ].map(({ value, icon: Icon, label }) => (
-                            <button
-                              key={value}
-                              onClick={() => setTheme(value)}
-                              className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
-                                theme === value
-                                  ? 'border-[#2ECC71] bg-[#2ECC71]/10 text-[#2ECC71]'
-                                  : 'border-[#30363D] text-gray-300 hover:border-[#484F58]'
-                              }`}
-                            >
-                              <Icon className="w-4 h-4" />
-                              <span className="text-sm font-medium">{label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                        <h3 className="font-medium text-white mb-2">Language</h3>
-                        <p className="text-sm text-gray-400 mb-3">Select your preferred language</p>
-                        <select
-                          value={language}
-                          onChange={(e) => setLanguage(e.target.value)}
-                          className="w-full px-4 py-2 bg-[#161B22] border border-[#30363D] rounded-lg text-white focus:border-[#2ECC71] focus:outline-none"
-                        >
-                          <option value="en">English</option>
-                          <option value="es">Español</option>
-                          <option value="fr">Français</option>
-                          <option value="de">Deutsch</option>
-                          <option value="ja">日本語</option>
-                          <option value="zh">中文</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Advanced */}
-                {activeTab === 'advanced' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Settings className="w-6 h-6 text-[#2ECC71]" />
-                      <h2 className="text-2xl font-bold text-white">Advanced Settings</h2>
-                    </div>
-
-                    <div className="space-y-4">
-                                             <div className="p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                         <h3 className="font-medium text-white mb-2">Data Export</h3>
-                         <p className="text-sm text-gray-400 mb-3">Download a copy of your data</p>
-                         <button 
-                           onClick={handleExportData}
-                           data-export-data
-                           className="flex items-center gap-2 px-4 py-2 bg-[#2ECC71] text-white rounded-lg hover:bg-[#2ecc71] transition-colors"
-                         >
-                           <Download className="w-4 h-4" />
-                           Export Data
-                         </button>
-                       </div>
-
-                       <div className="p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                         <h3 className="font-medium text-white mb-2">Clear Cache</h3>
-                         <p className="text-sm text-gray-400 mb-3">Clear all cached data and refresh the app</p>
-                         <button 
-                           onClick={handleClearCache}
-                           data-clear-cache
-                           className="flex items-center gap-2 px-4 py-2 bg-[#30363D] text-white rounded-lg hover:bg-[#484F58] transition-colors"
-                         >
-                           <RefreshCw className="w-4 h-4" />
-                           Clear Cache
-                         </button>
-                       </div>
-
-                       <div className="p-4 bg-[#0D1117] rounded-xl border border-[#30363D]">
-                         <h3 className="font-medium text-white mb-2">Developer Mode</h3>
-                         <p className="text-sm text-gray-400 mb-3">Enable developer tools and debugging features</p>
-                         <div className="flex items-center gap-2">
-                           <button 
-                             onClick={handleToggleDeveloperMode}
-                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                               developerMode ? 'bg-[#2ECC71]' : 'bg-[#30363D]'
-                             }`}
-                           >
-                             <span
-                               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                 developerMode ? 'translate-x-6' : 'translate-x-1'
-                               }`}
-                             />
-                           </button>
-                           <span className="text-sm text-gray-400">
-                             {developerMode ? 'Enabled' : 'Disabled'}
-                           </span>
-                         </div>
-                       </div>
-                    </div>
-                  </div>
-                )}
-
-                                 {/* Save Button */}
-                 <div className="pt-6 border-t border-[#30363D]">
-                   <button
-                     onClick={handleSaveSettings}
-                     data-save-settings
-                     className="flex items-center gap-2 px-6 py-3 bg-[#2ECC71] text-white rounded-xl hover:bg-[#2ecc71] transition-colors"
-                   >
-                     <Save className="w-4 h-4" />
-                     Save Changes
-                   </button>
-                 </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      <motion.div key={activeTab} {...fadeUp()} id="settings-panel" role="tabpanel" aria-label={tabs.find((t) => t.value === activeTab)?.label} className="mt-6">
+        <p className="mb-6 text-body text-ink-muted">
+          {activeTab === 'profile' && 'What other builders see, and what matching uses. Shared with the mobile app.'}
+          {activeTab === 'account' && 'Sign out, download your data, or delete your account.'}
+          {activeTab === 'preferences' && 'Small conveniences for this browser.'}
+        </p>
+        {activeTab === 'profile' && <ProfileEditor />}
+        {activeTab === 'account' && <AccountTab />}
+        {activeTab === 'preferences' && <PreferencesTab />}
+      </motion.div>
     </div>
   );
 };

@@ -1,183 +1,169 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Performance optimizations */
+/*
+ * GitAlong "Play" theme variables (docs/DESIGN_SYSTEM.md §2).
+ * Values are RGB channels so Tailwind opacity modifiers work.
+ * Brand hues stay the same in dark mode; tints become the brand colour at
+ * 15% over `card`, and "fg" shades keep brand-coloured text readable (AA).
+ */
+@layer base {
+  :root {
+    --bg: 255 255 255;
+    --surface: 248 250 252;
+    --card: 255 255 255;
+    --border: 226 232 240;
+    --border-strong: 203 213 225;
+    --ink: 15 23 42;
+    --ink-muted: 100 116 139;
+    --ink-subtle: 148 163 184;
+    --disabled: 229 231 235;
+    --disabled-edge: 203 213 225;
+
+    --green-tint: 220 252 231;
+    --purple-tint: 237 233 254;
+    --flame-tint: 255 237 213;
+    --gold-tint: 254 243 199;
+    --sky-tint: 224 242 254;
+    --danger-tint: 254 226 226;
+
+    --green-fg: 17 122 56;
+    --purple-fg: 124 58 237;
+    --flame-fg: 234 88 12;
+    --gold-fg: 180 83 9;
+    --sky-fg: 3 105 161;
+    --danger-fg: 185 28 28;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --bg: 11 17 32;
+    --surface: 17 24 39;
+    --card: 31 41 55;
+    --border: 51 65 85;
+    --border-strong: 71 85 105;
+    --ink: 241 245 249;
+    --ink-muted: 148 163 184;
+    --ink-subtle: 100 116 139;
+    --disabled: 55 65 81;
+    --disabled-edge: 31 41 55;
+
+    --green-tint: 30 59 58;
+    --purple-tint: 45 44 82;
+    --flame-tint: 64 52 50;
+    --gold-tint: 63 59 48;
+    --sky-tint: 28 60 82;
+    --danger-tint: 62 45 57;
+
+    --green-fg: 34 197 94;
+    --purple-fg: 167 139 250;
+    --flame-fg: 251 146 60;
+    --gold-fg: 251 191 36;
+    --sky-fg: 56 189 248;
+    --danger-fg: 248 113 113;
+
+    color-scheme: dark;
+  }
+
+  /* Metric-matched fallback so swapping to Nunito barely shifts layout. */
+  @font-face {
+    font-family: 'Nunito Fallback';
+    src: local('Arial');
+    ascent-override: 101.1%;
+    descent-override: 35.3%;
+    line-gap-override: 0%;
+    size-adjust: 100%;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-bg font-sans text-body text-ink antialiased;
+    margin: 0;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-ink;
+  }
+
+  /* One visible focus style everywhere: 3 px green-bright ring (spec §9). */
+  :focus-visible {
+    outline: 3px solid #22c55e;
+    outline-offset: 2px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::selection {
+    background: rgb(var(--green-tint));
+    color: rgb(var(--ink));
+  }
+
+  img {
+    -webkit-user-drag: none;
+  }
+
+  code,
+  kbd,
+  pre {
+    @apply font-mono;
+  }
+}
+
+@layer components {
+  /* Form fields: 2 px border, surface fill, radius 16 (md). */
+  .field {
+    @apply block w-full rounded-md border-2 border-border bg-surface px-4 text-body text-ink placeholder:text-ink-subtle transition-colors duration-200 hover:border-border-strong focus:border-green-bright focus:bg-card focus:outline-none disabled:cursor-not-allowed disabled:opacity-60;
+    min-height: 48px;
+  }
+
+  input.field,
+  select.field {
+    @apply py-2.5;
+  }
+
+  textarea.field {
+    @apply py-3 leading-relaxed;
+  }
+
+  .field-invalid {
+    @apply border-danger focus:border-danger;
+  }
+
+  /* Page gutters: 20 px mobile, 24–32 px web (spec §2). */
+  .gutter {
+    @apply px-5 sm:px-6 lg:px-8;
+  }
+
+  .link {
+    @apply font-extrabold text-sky-fg underline-offset-4 hover:underline;
+  }
+}
+
+/* Thin, quiet scrollbars. */
 * {
-  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--border-strong)) transparent;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #0D1117;
-  color: white;
-  margin: 0;
-  padding: 0;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #161B22;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #30363D;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2ECC71;
-}
-
-/* Glass morphism effect */
-.glass {
-  background: rgba(22, 27, 34, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(48, 54, 61, 0.3);
-}
-
-/* Button styles */
-.btn-primary {
-  @apply px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-xl hover:scale-105 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/25;
-}
-
-.btn-secondary {
-  @apply px-6 py-3 border-2 border-[#30363D] text-gray-300 font-semibold rounded-xl hover:border-green-600 hover:text-green-400 transition-all duration-300 hover:scale-105;
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #2ECC71 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Animation utilities */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-}
-
-/* Focus styles for accessibility */
-button:focus,
-input:focus,
-textarea:focus,
-select:focus {
-  outline: 2px solid #2ECC71;
-  outline-offset: 2px;
-}
-
-/* Loading states */
-.loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* Responsive utilities */
-@media (max-width: 768px) {
-  .glass {
-    background: rgba(22, 27, 34, 0.95);
-  }
-  
-  /* Better mobile text sizing */
-  h1 {
-    font-size: 2.5rem !important;
-    line-height: 1.2 !important;
-  }
-  
-  h2 {
-    font-size: 2rem !important;
-    line-height: 1.3 !important;
-  }
-  
-  /* Mobile padding adjustments */
-  .mobile-px {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  /* Button improvements for mobile */
-  .btn-primary, .btn-secondary {
-    padding: 0.875rem 1.5rem;
-    font-size: 1rem;
-    width: 100%;
-    max-width: 300px;
-  }
-  
-  /* Mobile-specific spacing */
-  .mobile-space > * + * {
-    margin-top: 1rem;
-  }
-}
-
-/* Extra small devices (phones, 576px and down) */
-@media (max-width: 576px) {
-  .container {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-  
-  /* Even smaller text for very small screens */
-  h1 {
-    font-size: 2rem !important;
-  }
-  
-  h2 {
-    font-size: 1.75rem !important;
-  }
-  
-  /* Stack elements vertically on small screens */
-  .stack-mobile {
-    flex-direction: column;
-  }
-  
-  /* Hide decorative elements on very small screens */
-  .hide-mobile {
-    display: none;
-  }
-}
-
-/* Print styles */
-@media print {
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .btn-primary {
-    background: #2ECC71;
-    border: 2px solid #2ECC71;
-  }
-}
-
-/* Reduced motion support */
+/* Reduced motion: cross-fades only (spec §4). Components also opt out of
+   confetti and elastic motion themselves. */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
@@ -187,77 +173,8 @@ select:focus {
   }
 }
 
-@layer components {
-  /* Gradient text utility */
-  .gradient-text {
-    @apply bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent;
-  }
-  
-  /* Glow effect utility */
-  .glow {
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.3);
-  }
-  
-  /* Glass morphism effect */
-  .glass {
-    background: rgba(22, 27, 34, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(48, 54, 61, 0.3);
-  }
-  
-  /* Floating animation */
-  .float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-  }
-  
-  /* Pulse animation */
-  .pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite alternate;
-  }
-  
-  @keyframes pulse-glow {
-    from { box-shadow: 0 0 20px rgba(46, 204, 113, 0.3); }
-    to { box-shadow: 0 0 30px rgba(46, 204, 113, 0.6); }
-  }
-  
-  /* Gradient border */
-  .gradient-border {
-    position: relative;
-    background: linear-gradient(135deg, #2ECC71, #27ae60);
-    padding: 1px;
-    border-radius: 12px;
-  }
-  
-  .gradient-border::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: #161B22;
-    border-radius: 12px;
-    margin: 1px;
-  }
-  
-  /* Modern button styles */
-  .btn-primary {
-    @apply bg-gradient-to-r from-green-600 to-green-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:scale-105 transition-all duration-300;
-  }
-  
-  .btn-secondary {
-    @apply bg-transparent border-2 border-green-600 text-green-400 font-bold py-3 px-6 rounded-xl hover:bg-green-600 hover:text-white transition-all duration-300;
-  }
-  
-  /* Card styles */
-  .card-modern {
-    @apply bg-[#161B22] border border-[#30363D] rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300;
-  }
-  
-  /* Input styles */
-  .input-modern {
-    @apply bg-[#161B22] border border-[#30363D] rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all duration-300;
+@media print {
+  .no-print {
+    display: none !important;
   }
 }

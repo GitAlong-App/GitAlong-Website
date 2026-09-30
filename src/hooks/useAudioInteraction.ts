@@ -1,25 +1,16 @@
 import { useEffect } from 'react';
 import { audioEngine } from '../utils/audio';
 
+const INTERACTIVE = 'button, a, .btn-primary, .btn-secondary, .card-modern, .input-modern';
+
+/** Plays subtle hover/click sounds unless the user turned them off in Settings → Preferences. */
 export const useAudioInteraction = () => {
   useEffect(() => {
     let lastHoverTarget: HTMLElement | null = null;
-    let clickInitDone = false;
-
-    const initAudio = async () => {
-      if (!clickInitDone) {
-        await audioEngine.init();
-        clickInitDone = true;
-      }
-    };
 
     const handleMouseOver = (e: MouseEvent) => {
-      if (!clickInitDone) return; // Wait until audio is initialized
-
-      const target = e.target as HTMLElement;
-      // Find closest interactive element
-      const interactiveEl = target.closest('button, a, .btn-primary, .btn-secondary, .card-modern, .input-modern') as HTMLElement;
-      
+      if (!audioEngine.isEnabled()) return;
+      const interactiveEl = (e.target as HTMLElement).closest(INTERACTIVE) as HTMLElement | null;
       if (interactiveEl && interactiveEl !== lastHoverTarget) {
         lastHoverTarget = interactiveEl;
         audioEngine.playHoverSound();
@@ -33,17 +24,14 @@ export const useAudioInteraction = () => {
     };
 
     const handleClick = async (e: MouseEvent) => {
-      await initAudio(); // Initialize on first click if not already
-
-      const target = e.target as HTMLElement;
-      const interactiveEl = target.closest('button, a, .btn-primary, .btn-secondary, .card-modern, .input-modern');
-      
-      if (interactiveEl) {
+      if (!audioEngine.isEnabled()) return;
+      // Browsers only allow audio after a user gesture; init is idempotent.
+      await audioEngine.init();
+      if ((e.target as HTMLElement).closest(INTERACTIVE)) {
         audioEngine.playClickSound();
       }
     };
 
-    // Listeners
     document.addEventListener('mouseover', handleMouseOver);
     document.addEventListener('mouseout', handleMouseOut);
     document.addEventListener('click', handleClick, { capture: true });

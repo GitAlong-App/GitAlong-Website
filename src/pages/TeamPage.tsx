@@ -1,185 +1,119 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
+import { ExternalLink, Github, Mail } from 'lucide-react';
+import { SEO } from '../components/SEO';
+import { PageHero, Section } from '../components/marketing/Section';
+import { Illustration, PressableLink, Tile, TileLink } from '../components/ui';
+import { CONTACT_EMAIL, FOUNDER_GITHUB_URL, GITHUB_REPO_URL, WEBSITE_REPO_URL } from '../lib/links';
+import type { IllustrationName } from '../lib/illustrations';
+import { inView } from '../lib/motion';
 
-export const TeamPage: React.FC = () => {
-  const team = [
-    {
-      name: "Alex Chen",
-      role: "Co-founder & CEO",
-      bio: "Former GitHub engineer with 10+ years in open source. Passionate about connecting developers worldwide.",
-      github: "alexchen",
-      avatar: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=1"
-    },
-    {
-      name: "Sarah Kim",
-      role: "Co-founder & CTO",
-      bio: "AI/ML expert from Google. Building the future of developer matching with cutting-edge algorithms.",
-      github: "sarahkim",
-      avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=1"
-    },
-    {
-      name: "Marcus Johnson",
-      role: "Head of Engineering",
-      bio: "Full-stack developer with extensive experience in mobile and web applications. Flutter enthusiast.",
-      github: "marcusj",
-      avatar: "https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=1"
-    },
-    {
-      name: "Emma Rodriguez",
-      role: "Head of Design",
-      bio: "UX/UI designer focused on creating intuitive developer experiences. Former Figma design lead.",
-      github: "emmarodriguez",
-      avatar: "https://images.pexels.com/photos/3783471/pexels-photo-3783471.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=1"
-    },
-    {
-      name: "David Park",
-      role: "DevRel Manager",
-      bio: "Community builder and developer advocate. Connecting open source maintainers with contributors.",
-      github: "davidpark",
-      avatar: "https://images.pexels.com/photos/2613260/pexels-photo-2613260.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=1"
-    },
-    {
-      name: "Lisa Thompson",
-      role: "Data Scientist",
-      bio: "PhD in Machine Learning. Optimizing my matching algorithms for better developer connections.",
-      github: "lisathompson",
-      avatar: "https://images.pexels.com/photos/3756679/pexels-photo-3756679.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&dpr=1"
-    }
-  ];
+const ways: Array<{ art: IllustrationName; title: string; text: string; href?: string; to?: string }> = [
+  { art: 'hammer_and_wrench', title: 'Contribute to the app & backend', text: 'Flutter app, FastAPI service and database migrations.', href: GITHUB_REPO_URL },
+  { art: 'laptop', title: 'Contribute to this website', text: 'React + TypeScript + Supabase.', href: WEBSITE_REPO_URL },
+  { art: 'test_tube', title: 'Report a bug or suggest a feature', text: 'Open an issue on GitHub.', href: `${GITHUB_REPO_URL}/issues` },
+  { art: 'speech_balloon', title: 'Talk to the founder', text: 'Feedback, partnerships or press.', to: '/contact' },
+];
 
-  return (
-    <div className="min-h-screen py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-20"
-        >
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Meet the Team
-          </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            I'm a passionate team of developers, designers, and open source enthusiasts 
-            building the future of collaborative software development.
-          </p>
+export const TeamPage: React.FC = () => (
+  <div>
+    <SEO
+      title="Team"
+      description="GitAlong is built in public by Sreevallabh Kakarala (@sreevallabh04). Here is how to contribute or get in touch."
+      url="/team"
+    />
+    <PageHero
+      eyebrow="Team"
+      title="Who builds GitAlong"
+      intro="GitAlong is a small, independent project. There is no big team behind it — just a founder building in public."
+      art={<Illustration name="technologist" size={150} priority className="motion-safe:animate-bob" />}
+    />
+
+    <Section>
+      <div className="mx-auto max-w-4xl space-y-8">
+        <motion.div {...inView()}>
+          <Tile padding="lg" className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left">
+            <img
+              src="https://github.com/sreevallabh04.png?size=240"
+              alt="Sreevallabh Kakarala's GitHub avatar"
+              width={112}
+              height={112}
+              loading="lazy"
+              decoding="async"
+              className="h-28 w-28 shrink-0 rounded-full border-4 border-card object-cover shadow-edge-tile"
+            />
+            <div>
+              <h2 className="text-h1 text-ink">Sreevallabh Kakarala</h2>
+              <p className="mt-1 type-caption text-green-fg">Founder — design, mobile app, backend and website</p>
+              <p className="mt-3 text-body text-ink-muted">
+                I started GitAlong because finding people to build with was harder than building. It’s designed, coded and run by me,
+                and every part of it — the Flutter app, the FastAPI matching service and this website — is developed in the open.
+              </p>
+              <PressableLink
+                href={FOUNDER_GITHUB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="secondary"
+                size="sm"
+                className="mt-5"
+                leadingIcon={<Github strokeWidth={2.5} />}
+                trailingIcon={<ExternalLink strokeWidth={2.5} />}
+              >
+                @sreevallabh04
+              </PressableLink>
+            </div>
+          </Tile>
         </motion.div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {team.map((member, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.1 }}
-              className="bg-[#161B22] rounded-lg border border-[#30363D] p-6 hover:border-[#2ECC71] transition-all hover:shadow-xl"
-            >
-              <div className="text-center mb-4">
-                <img
-                  src={member.avatar}
-                  alt={member.name}
-                  className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
-                />
-                <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
-                <p className="text-[#2ECC71] font-semibold mb-2">{member.role}</p>
-                <p className="text-gray-300 text-sm leading-relaxed">{member.bio}</p>
-              </div>
-              
-              <div className="flex justify-center space-x-4">
-                <a
-                  href={`https://github.com/${member.github}`}
-                  className="text-gray-400 hover:text-[#2ECC71] transition-colors"
-                >
-                  <Github className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-[#2ECC71] transition-colors"
-                >
-                  <Linkedin className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-[#2ECC71] transition-colors"
-                >
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-[#2ECC71] transition-colors"
-                >
-                  <Mail className="h-5 w-5" />
-                </a>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Company Values */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="bg-[#161B22] rounded-lg border border-[#30363D] p-8 mb-20"
-        >
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Our Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#2ECC71] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">🤝</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Collaboration</h3>
-              <p className="text-gray-300">
-                I believe in the power of working together to create something greater than the sum of its parts.
+        <motion.div {...inView(1)}>
+          <Tile padding="lg" className="flex flex-col gap-5 sm:flex-row sm:items-center">
+            <Illustration name="seedling" size={72} />
+            <div>
+              <h2 className="text-h2 text-ink">Building in public</h2>
+              <p className="mt-2 text-body text-ink-muted">
+                GitAlong is early. The web app and the Android beta are live, iOS is not yet. Features ship when they work — and when
+                something isn’t ready, this site says so. If you use GitAlong and something feels off, telling me is the most useful
+                thing you can do.
               </p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#2ECC71] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">🚀</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Innovation</h3>
-              <p className="text-gray-300">
-                I'm constantly pushing the boundaries of what's possible in developer tooling and collaboration.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#2ECC71] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">🌍</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Open Source</h3>
-              <p className="text-gray-300">
-                I'm committed to supporting and growing the open source community that made my career possible.
-              </p>
-            </div>
-          </div>
+          </Tile>
         </motion.div>
 
-        {/* Join Us Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-center bg-gradient-to-r from-[#21262D] to-[#161B22] rounded-lg p-12"
-        >
-          <h2 className="text-3xl font-bold text-white mb-4">Join Our Team</h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            I'm always looking for talented individuals who share my passion for open source 
-            and developer collaboration. Let's build the future together.
-          </p>
-          <a
-            href="/contact"
-            className="inline-flex items-center px-8 py-4 bg-[#2ECC71] text-white rounded-lg font-semibold hover:bg-[#2ECC71]/90 transition-colors"
-          >
-            View Open Positions
-          </a>
+        <motion.div {...inView(2)}>
+          <Tile tone="green" padding="lg">
+            <h2 className="text-h2 text-ink">Get involved</h2>
+            <p className="mt-2 text-body text-ink">There are no open positions. There are open issues, and contributions are welcome.</p>
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {ways.map((w) => {
+                const inner = (
+                  <span className="flex items-start gap-3">
+                    <Illustration name={w.art} size={40} />
+                    <span>
+                      <span className="block text-h3 text-ink">{w.title}</span>
+                      <span className="mt-0.5 block text-body-sm text-ink-muted">{w.text}</span>
+                    </span>
+                  </span>
+                );
+                return w.to ? (
+                  <TileLink key={w.title} to={w.to} className="h-full" faceClassName="h-full">
+                    {inner}
+                  </TileLink>
+                ) : (
+                  <TileLink key={w.title} href={w.href!} target="_blank" rel="noopener noreferrer" className="h-full" faceClassName="h-full">
+                    {inner}
+                  </TileLink>
+                );
+              })}
+            </div>
+            <p className="mt-6 flex flex-wrap items-center gap-2 text-body-sm font-bold text-ink">
+              <Mail className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Or email{' '}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="link">
+                {CONTACT_EMAIL}
+              </a>
+            </p>
+          </Tile>
         </motion.div>
       </div>
-      <div className="text-center mt-20">
-        <p className="text-gray-300">Built entirely by Sreevallabh Kakarala.</p>
-      </div>
-    </div>
-  );
-};
+    </Section>
+  </div>
+);

@@ -1,11 +1,11 @@
 {
-  "name": "GitAlong - Find Your Perfect Coding Partner",
+  "name": "GitAlong – Find the developer your project is missing",
   "short_name": "GitAlong",
-  "description": "Connect with developers who share your passion for coding. Find collaborators, build projects together, and stop coding alone.",
+  "description": "Co-founders, contributors, hackathon teammates and mentors — matched on intent and real GitHub work.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#2ea043",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -14,7 +14,7 @@
       "type": "image/png"
     },
     {
-      "src": "/favicon-32x32.png", 
+      "src": "/favicon-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
@@ -24,20 +24,25 @@
       "type": "image/png"
     },
     {
-      "src": "/app_icon.jpg",
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["productivity", "developer-tools", "social"],
   "lang": "en",
-  "scope": "/",
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "https://gitalong.vercel.app"
-    }
-  ],
-  "prefer_related_applications": false
+  "scope": "/"
 }

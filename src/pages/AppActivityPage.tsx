@@ -1,191 +1,200 @@
 import React, { useEffect, useState } from 'react';
-import { Users } from 'lucide-react';
-import {
-  backendService,
-  MatchItem,
-  RepoSwipeHistoryItem,
-  SwipeHistoryItem,
-  UserSummary,
-} from '../services/backendService';
+import { Link } from 'react-router-dom';
+import { Heart, Star, X } from 'lucide-react';
+import { SEO } from '../components/SEO';
+import { IntentChips } from '../components/IntentChips';
+import { Avatar, Chip, EmptyState, Illustration, LoadingLabel, PressableLink, SkeletonRow, Tile } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
+import { useMatches } from '../contexts/MatchesContext';
+import { PublicProfile, displayName } from '../lib/types';
+import { formatRelativeTime } from '../lib/format';
+import type { IllustrationName } from '../lib/illustrations';
+import { RepoSwipeRow, SwipeRow, fetchPublicProfiles, getRepoSwipeHistory, getSwipeHistory } from '../services/dataService';
 
-export const AppActivityPage: React.FC = () => {
-  const { supabaseAccessToken } = useAuth();
-  const [likedUsers, setLikedUsers] = useState<UserSummary[]>([]);
-  const [matchedUsers, setMatchedUsers] = useState<MatchItem[]>([]);
-  const [recentSwipes, setRecentSwipes] = useState<SwipeHistoryItem[]>([]);
-  const [savedRepos, setSavedRepos] = useState<RepoSwipeHistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = async () => {
-      if (!supabaseAccessToken) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const [history, matches, repoSaves] = await Promise.all([
-          backendService.getSwipeHistory(supabaseAccessToken, 100),
-          backendService.getMatches(supabaseAccessToken, 50),
-          backendService.getRepoSwipeHistory(supabaseAccessToken, 100, 'save'),
-        ]);
-        setRecentSwipes(history);
-        setMatchedUsers(matches.matches || []);
-        setSavedRepos(repoSaves);
-
-        const likedRows = history.filter((h) => h.action === 'like' || h.action === 'superLike');
-        const uniqueLikedIds = Array.from(new Set(likedRows.map((h) => h.swiped_user_id)));
-        const profiles = await Promise.all(
-          uniqueLikedIds.map(async (uid) => {
-            try {
-              return await backendService.getUserProfile(supabaseAccessToken, uid);
-            } catch {
-              return null;
-            }
-          })
-        );
-
-        setLikedUsers(
-          profiles
-            .filter((p): p is NonNullable<typeof p> => p !== null)
-            .map((p) => ({
-              id: p.id,
-              username: p.username,
-              name: p.name,
-              bio: p.bio,
-              avatar_url: p.avatar_url,
-              location: p.location,
-              public_repos: p.public_repos,
-              followers: p.followers,
-              languages: p.languages,
-              interests: p.interests,
-              match_score: null,
-            }))
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, [supabaseAccessToken]);
-
-  return (
-    <section className="py-6 px-4 md:px-6">
-      {loading ? (
-        <div className="text-gray-400">Loading activity...</div>
-      ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          <div className="p-4 rounded-xl bg-[#161B22] border border-[#30363D]">
-            <h3 className="text-base font-semibold text-green-400 mb-4">Liked Developers ({likedUsers.length})</h3>
-            <div className="space-y-3 max-h-[60vh] overflow-auto pr-1">
-              {likedUsers.length === 0 ? (
-                <p className="text-sm text-gray-400">No liked developers yet.</p>
-              ) : (
-                likedUsers.map((dev) => (
-                  <div key={dev.id} className="flex items-center gap-3 p-2 rounded-lg bg-black/20 border border-[#30363D]">
-                    <img
-                      src={dev.avatar_url || 'https://avatars.githubusercontent.com/u/0?v=4'}
-                      alt={dev.username}
-                      className="w-9 h-9 rounded-full border border-[#30363D]"
-                    />
-                    <div className="min-w-0">
-                      <div className="text-white text-sm font-semibold truncate">{dev.name || dev.username}</div>
-                      <div className="text-gray-400 text-xs truncate">@{dev.username}</div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#161B22] border border-[#30363D]">
-            <h3 className="text-base font-semibold text-blue-400 mb-4">Matches ({matchedUsers.length})</h3>
-            <div className="space-y-3 max-h-[60vh] overflow-auto pr-1">
-              {matchedUsers.length === 0 ? (
-                <p className="text-sm text-gray-400">No matches yet.</p>
-              ) : (
-                matchedUsers.map((match) => (
-                  <div key={match.id} className="flex items-center gap-3 p-2 rounded-lg bg-black/20 border border-[#30363D]">
-                    <img
-                      src={match.other_user.avatar_url || 'https://avatars.githubusercontent.com/u/0?v=4'}
-                      alt={match.other_user.username}
-                      className="w-9 h-9 rounded-full border border-[#30363D]"
-                    />
-                    <div className="min-w-0">
-                      <div className="text-white text-sm font-semibold truncate">
-                        {match.other_user.name || match.other_user.username}
-                      </div>
-                      <div className="text-gray-400 text-xs truncate">@{match.other_user.username}</div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#161B22] border border-[#30363D]">
-            <h3 className="text-base font-semibold text-purple-300 mb-4">Recent Swipes ({recentSwipes.length})</h3>
-            <div className="space-y-2 max-h-[60vh] overflow-auto pr-1">
-              {recentSwipes.length === 0 ? (
-                <p className="text-sm text-gray-400">No swipe activity yet.</p>
-              ) : (
-                recentSwipes.map((swipe) => (
-                  <div key={swipe.id} className="flex items-center justify-between rounded-lg border border-[#30363D] bg-black/20 p-2">
-                    <div className="text-xs text-gray-200 truncate pr-2">{swipe.swiped_user_id}</div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          swipe.action === 'dislike'
-                            ? 'bg-red-500/15 text-red-300'
-                            : swipe.action === 'superLike'
-                            ? 'bg-blue-500/15 text-blue-300'
-                            : 'bg-green-500/15 text-green-300'
-                        }`}
-                      >
-                        {swipe.action}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#161B22] border border-[#30363D]">
-            <h3 className="text-base font-semibold text-amber-300 mb-4">Saved Repositories ({savedRepos.length})</h3>
-            <div className="space-y-2 max-h-[60vh] overflow-auto pr-1">
-              {savedRepos.length === 0 ? (
-                <p className="text-sm text-gray-400">No saved repositories yet.</p>
-              ) : (
-                savedRepos.map((repo) => (
-                  <a
-                    key={repo.id}
-                    href={repo.repo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block rounded-lg border border-[#30363D] bg-black/20 p-2 hover:border-amber-500/40 transition-colors"
-                  >
-                    <div className="text-xs text-white truncate font-medium">{repo.repo_full_name}</div>
-                    <div className="mt-1 flex items-center justify-between text-[10px] text-gray-400">
-                      <span className="truncate pr-2">{repo.repo_language || 'Unknown'}</span>
-                      <span>★ {repo.repo_stars}</span>
-                    </div>
-                  </a>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {!supabaseAccessToken && (
-        <div className="mt-6 rounded-xl border border-[#30363D] bg-[#161B22] p-4 text-gray-300 text-sm flex items-center gap-2">
-          <Users className="w-4 h-4 text-green-400" />
-          Sign in to view your activity timeline.
-        </div>
-      )}
-    </section>
-  );
+const actionChip: Record<SwipeRow['action'], { label: string; tone: 'green' | 'purple' | 'danger'; icon: React.ReactNode }> = {
+  like: { label: 'Liked', tone: 'green', icon: <Heart className="h-3 w-3 fill-current" aria-hidden /> },
+  superLike: { label: 'Super', tone: 'purple', icon: <Star className="h-3 w-3 fill-current" aria-hidden /> },
+  dislike: { label: 'Skipped', tone: 'danger', icon: <X className="h-3 w-3" strokeWidth={4} aria-hidden /> },
 };
 
+const Section: React.FC<{ title: string; count: number; art: IllustrationName; children: React.ReactNode }> = ({
+  title,
+  count,
+  art,
+  children,
+}) => (
+  <Tile as="section" padding="md" className="flex min-h-[260px] flex-col" aria-label={title}>
+    <header className="mb-3 flex items-center gap-2.5">
+      <Illustration name={art} size={32} />
+      <h2 className="flex-1 text-h3 text-ink">{title}</h2>
+      <span className="rounded-pill bg-surface px-2.5 py-1 text-[13px] font-black text-ink-muted">{count}</span>
+    </header>
+    <div className="-mr-1 max-h-[60vh] flex-1 space-y-2 overflow-y-auto pr-1">{children}</div>
+  </Tile>
+);
+
+const rowClass = 'flex items-center gap-3 rounded-md border-2 border-border bg-surface p-2.5 transition-colors hover:border-border-strong';
+const repoRowClass = 'block rounded-md border-2 border-border bg-surface p-2.5 transition-colors hover:border-border-strong';
+
+export const AppActivityPage: React.FC = () => {
+  const { currentUser } = useAuth();
+  const { matches, loading: matchesLoading } = useMatches();
+  const me = currentUser?.id ?? '';
+  const [swipes, setSwipes] = useState<SwipeRow[]>([]);
+  const [profiles, setProfiles] = useState<Map<string, PublicProfile>>(new Map());
+  const [savedRepos, setSavedRepos] = useState<RepoSwipeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!me) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [history, repoSaves] = await Promise.all([
+          getSwipeHistory(me, 100),
+          getRepoSwipeHistory(me, 100, 'save').catch(() => [] as RepoSwipeRow[]),
+        ]);
+        // One batched read from public_profiles instead of one request per person.
+        const people = await fetchPublicProfiles(history.map((h) => h.swiped_user_id));
+        if (cancelled) return;
+        setSwipes(history);
+        setProfiles(people);
+        setSavedRepos(repoSaves);
+        setError(null);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load your activity.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [me]);
+
+  const liked = swipes.filter((s) => s.action === 'like' || s.action === 'superLike');
+  const likedUnique = liked.filter((s, i) => liked.findIndex((x) => x.swiped_user_id === s.swiped_user_id) === i);
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 md:px-8 md:pt-8">
+      <SEO title="Activity – GitAlong" description="Your likes, matches and saved repositories." url="/app/activity" noIndex />
+      {error && (
+        <Tile tone="danger" padding="sm" className="mb-5 flex items-center gap-3">
+          <Illustration name="thinking_face" size={32} />
+          <p className="text-body-sm font-bold text-ink">{error}</p>
+        </Tile>
+      )}
+      {loading ? (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <LoadingLabel>Loading your activity…</LoadingLabel>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2 rounded-lg border-2 border-border bg-card p-4" aria-hidden>
+              <SkeletonRow />
+              <SkeletonRow />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <Section title="Matches" count={matches.length} art="handshake">
+            {matchesLoading ? (
+              <SkeletonRow />
+            ) : matches.length === 0 ? (
+              <EmptyState size="sm" illustration="eyes" title="No matches yet" message="When someone you liked likes you back, they show up here." />
+            ) : (
+              matches.map((match) => (
+                <Link key={match.id} to={`/app/messages/${match.id}`} className={rowClass}>
+                  <Avatar src={match.other?.avatar_url} name={displayName(match.other)} size={40} />
+                  <div className="min-w-0 flex-1">
+                    <div className={`truncate text-body-sm ${match.unread ? 'font-black text-ink' : 'font-extrabold text-ink'}`}>
+                      {displayName(match.other)}
+                    </div>
+                    <div className="truncate text-[13px] font-semibold text-ink-muted">{match.last_message ? match.last_message : 'Say hi →'}</div>
+                  </div>
+                  {match.unread && (
+                    <span className="rounded-pill bg-danger px-2 py-0.5 text-[11px] font-black uppercase text-white">
+                      New<span className="sr-only"> message</span>
+                    </span>
+                  )}
+                </Link>
+              ))
+            )}
+          </Section>
+
+          <Section title="Liked builders" count={likedUnique.length} art="sparkling_heart">
+            {likedUnique.length === 0 ? (
+              <EmptyState
+                size="sm"
+                illustration="compass"
+                title="No likes yet"
+                message="Builders you like appear here."
+                action={
+                  <PressableLink to="/app/discover" size="sm">
+                    Discover
+                  </PressableLink>
+                }
+              />
+            ) : (
+              likedUnique.map((swipe) => {
+                const p = profiles.get(swipe.swiped_user_id);
+                const href = p?.github_url || (p?.username ? `https://github.com/${p.username}` : undefined);
+                return (
+                  <a key={swipe.id} href={href} target="_blank" rel="noopener noreferrer" className={rowClass}>
+                    <Avatar src={p?.avatar_url} name={p ? displayName(p) : '?'} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-body-sm font-extrabold text-ink">{p ? displayName(p) : 'Profile unavailable'}</div>
+                      {p?.username && <div className="truncate text-[13px] font-semibold text-ink-muted">@{p.username}</div>}
+                      <IntentChips values={p?.looking_for} size="xs" className="mt-1" />
+                    </div>
+                  </a>
+                );
+              })
+            )}
+          </Section>
+
+          <Section title="Recent swipes" count={swipes.length} art="compass">
+            {swipes.length === 0 ? (
+              <EmptyState size="sm" illustration="sleeping_face" title="Nothing yet" message="Your swipes show up here." />
+            ) : (
+              swipes.map((swipe) => {
+                const p = profiles.get(swipe.swiped_user_id);
+                const chip = actionChip[swipe.action] ?? actionChip.like;
+                return (
+                  <div key={swipe.id} className={rowClass}>
+                    <Avatar src={p?.avatar_url} name={p ? displayName(p) : '?'} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-body-sm font-extrabold text-ink">{p ? displayName(p) : 'Profile unavailable'}</div>
+                      <div className="text-[12px] font-bold text-ink-subtle">{formatRelativeTime(swipe.swiped_at)}</div>
+                    </div>
+                    <Chip size="sm" tone={chip.tone} icon={chip.icon}>
+                      {chip.label}
+                    </Chip>
+                  </div>
+                );
+              })
+            )}
+          </Section>
+
+          <Section title="Saved repos" count={savedRepos.length} art="books">
+            {savedRepos.length === 0 ? (
+              <EmptyState size="sm" illustration="magnifying_glass" title="No saved repos" message="Repositories you save in project discovery land here." />
+            ) : (
+              savedRepos.map((repo) => (
+                <a key={repo.id} href={repo.repo_url} target="_blank" rel="noopener noreferrer" className={repoRowClass}>
+                  <div className="truncate text-body-sm font-extrabold text-ink">{repo.repo_full_name}</div>
+                  <div className="mt-1 flex items-center justify-between text-[12px] font-bold text-ink-muted">
+                    <span className="truncate pr-2">{repo.repo_language || 'Unknown'}</span>
+                    <span className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-current text-gold" aria-hidden /> {repo.repo_stars}
+                    </span>
+                  </div>
+                </a>
+              ))
+            )}
+          </Section>
+        </div>
+      )}
+    </div>
+  );
+};

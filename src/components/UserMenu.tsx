@@ -1,111 +1,118 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Compass, LogOut, MessageCircle, Settings, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useAuth } from '../contexts/AuthContext';
+import { Avatar } from './ui/Avatar';
+import { EASE_OUT_CUBIC } from '../lib/motion';
 
+/** Avatar button with the account menu (a tile dropdown). */
 export const UserMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { currentUser, githubUserData, logout } = useAuth();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const { currentUser, profile, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    if (!isOpen) return;
+    const onDown = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setIsOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         setIsOpen(false);
+        buttonRef.current?.focus();
       }
     };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  if (!currentUser) return null;
+
+  const meta = (currentUser.user_metadata ?? {}) as Record<string, string | undefined>;
+  const username = profile?.username || meta.user_name || meta.preferred_username || currentUser.email?.split('@')[0] || 'you';
+  const name = profile?.name || meta.full_name || meta.name || username;
+  const avatar = profile?.avatar_url || meta.avatar_url || null;
+
+  const go = (path: string) => {
+    setIsOpen(false);
+    navigate(path);
+  };
 
   const handleSignOut = async () => {
     try {
       await logout();
       setIsOpen(false);
+      navigate('/');
     } catch (error) {
-      console.error('Error signing out:', error);
+      toast.error(error instanceof Error ? error.message : 'Sign out failed.');
     }
   };
 
-  const handleProfile = () => {
-    navigate('/profile');
-    setIsOpen(false);
-  };
-
-  const handleSettings = () => {
-    navigate('/app/settings');
-    setIsOpen(false);
-  };
-
-  if (!currentUser) return null;
+  const itemClass =
+    'flex w-full min-h-[48px] items-center gap-3 rounded-md px-3 text-left text-body font-bold text-ink transition-colors hover:bg-surface';
 
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-white transition-all duration-300 hover:scale-105"
+        ref={buttonRef}
+        type="button"
+        onClick={() => setIsOpen((v) => !v)}
+        className="flex h-12 w-12 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-label={`Account menu for ${name}`}
       >
-        {githubUserData?.avatar_url ? (
-          <img src={githubUserData.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border border-[#30363D]" />
-        ) : (
-          <div className="w-8 h-8 bg-gradient-to-r from-[#2ECC71] to-[#27ae60] rounded-full flex items-center justify-center text-white text-sm font-bold">
-            {(githubUserData?.login || currentUser.email || 'U')[0].toUpperCase()}
-          </div>
-        )}
-        <span className="hidden md:block text-sm font-medium">
-          {githubUserData?.login || currentUser.email?.split('@')[0] || 'User'}
-        </span>
-        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <Avatar src={avatar} name={name} size={40} className="border-2 border-border" />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="absolute right-0 mt-2 w-48 bg-[#161B22] border border-[#30363D] rounded-xl shadow-2xl z-50"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: EASE_OUT_CUBIC }}
+            className="absolute right-0 z-50 mt-2 w-64 rounded-lg border-2 border-border bg-card p-2 shadow-edge-tile"
+            role="menu"
+            aria-label="Account"
           >
-            <div className="py-2">
-              <div className="px-4 py-3 border-b border-[#30363D]">
-                <p className="text-white font-medium text-sm">
-                  {githubUserData?.name || githubUserData?.login || currentUser.email?.split('@')[0] || 'User'}
-                </p>
-                <p className="text-gray-400 text-xs">
-                  {currentUser.email}
-                </p>
+            <div className="flex items-center gap-3 border-b-2 border-border px-2 pb-3 pt-1">
+              <Avatar src={avatar} name={name} size={40} />
+              <div className="min-w-0">
+                <p className="truncate text-body font-extrabold text-ink">{name}</p>
+                <p className="truncate text-body-sm text-ink-muted">@{username}</p>
               </div>
-
-              <div className="py-1">
-                <button
-                  onClick={handleProfile}
-                  className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-[#0D1117] transition-colors duration-200"
-                >
-                  <User className="h-4 w-4 mr-3" />
-                  Profile
-                </button>
-
-                <button
-                  onClick={handleSettings}
-                  className="w-full flex items-center px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-[#0D1117] transition-colors duration-200"
-                >
-                  <Settings className="h-4 w-4 mr-3" />
-                  Settings
-                </button>
-
-                <div className="border-t border-[#30363D] my-1"></div>
-
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-[#0D1117] transition-colors duration-200"
-                >
-                  <LogOut className="h-4 w-4 mr-3" />
-                  Sign Out
-                </button>
-              </div>
+            </div>
+            <div className="py-1.5">
+              <button onClick={() => go('/app/discover')} className={itemClass} role="menuitem">
+                <Compass className="h-5 w-5 text-ink-muted" strokeWidth={2.5} aria-hidden /> Discover
+              </button>
+              <button onClick={() => go('/app/messages')} className={itemClass} role="menuitem">
+                <MessageCircle className="h-5 w-5 text-ink-muted" strokeWidth={2.5} aria-hidden /> Messages
+              </button>
+              <button onClick={() => go('/app/profile')} className={itemClass} role="menuitem">
+                <User className="h-5 w-5 text-ink-muted" strokeWidth={2.5} aria-hidden /> Profile
+              </button>
+              <button onClick={() => go('/app/settings')} className={itemClass} role="menuitem">
+                <Settings className="h-5 w-5 text-ink-muted" strokeWidth={2.5} aria-hidden /> Settings
+              </button>
+            </div>
+            <div className="border-t-2 border-border pt-1.5">
+              <button
+                onClick={() => void handleSignOut()}
+                className={`${itemClass} text-danger-fg hover:bg-danger-tint`}
+                role="menuitem"
+              >
+                <LogOut className="h-5 w-5" strokeWidth={2.5} aria-hidden /> Sign out
+              </button>
             </div>
           </motion.div>
         )}

@@ -1,317 +1,109 @@
-# GitAlong Website
+# GitAlong website
 
-A modern, responsive website for GitAlong - the platform that helps developers find their perfect coding partners.
+The web app and marketing site for **GitAlong** — *find the developer your project is missing.*
 
-## Features
+People say why they're here (co-founder, side-project partner, open-source collaborators, hackathon teammates, mentoring or looking for a mentor), what they're building (a ≤280-character pitch) and which skills they want in a partner. GitAlong recommends collaborators with compatible intent and complementary skills, shows their real GitHub work, and explains each match ("You're both looking for a co-founder", "Knows TypeScript — a skill you want").
 
-### ✅ Functional Authentication
-- **Supabase Auth** - GitHub OAuth sign-in
-- **GitHub OAuth** - Sign in with GitHub account
-- **Google OAuth** - Sign in with Google account
-- **Email/Password** - Traditional authentication
-- **User Profile Management** - View and manage user profiles
+Live at <https://gitalong.vercel.app>.
 
-### ✅ Real GitHub Integration
-- **GitHub API Integration** - Real GitHub data instead of mock data
-- **Profile Details** - Complete GitHub profile information
-- **Authentication** - GitHub OAuth integration
+## What's in here
 
-### ✅ Functional Navigation
-- **User Menu** - Functional profile and settings options
-- **Responsive Navigation** - Works on desktop and mobile
-- **Clean Navigation** - Simple navigation focused on core pages
+| Area | Routes | Notes |
+|---|---|---|
+| Marketing pages | `/`, `/features`, `/faq`, `/about`, `/team`, `/maintainer`, `/contact`, `/privacy` | Public. Contact form uses Formspree. |
+| App (signed in) | `/app/discover`, `/app/messages`, `/app/messages/:matchId`, `/app/activity`, `/app/profile`, `/app/settings` | Protected by GitHub sign-in (Supabase Auth). `/profile` redirects to `/app/profile`. |
 
-### ✅ Interactive Components
-- **Get Started Button** - Navigates to search or triggers signup
-- **Learn More Button** - Smooth scroll to features section
-- **Download App Buttons** - Platform-specific app store links
-- **GitHub Login** - Functional GitHub authentication in maintainer portal
+App features:
 
-## Setup Instructions
+- **Discover** — ranked recommendations from the backend with pitch, "looking for" chips, up to three match reasons and a score breakdown; filter by intent (`looking_for`), languages, interests and more. Falls back to trending GitHub repositories when the backend is unavailable or has no candidates.
+- **Messages** — real-time chat with matches (Supabase Realtime), unread badges, icebreakers for new matches, and unmatch / block / report.
+- **Activity** — matches, liked developers, recent swipes and saved repositories.
+- **Profile** — profile strength ring (the 8 checks from the design system), level, streak/XP/match/star tiles, a "complete your profile" checklist, achievements and top repositories.
+- **Settings** — GitAlong profile editor (name, bio, location, company, website, intents, languages, interests, skills wanted, pitch), data export, real account deletion, and per-browser preferences (theme, sounds).
+- **Guided setup** — a one-question-per-step wizard offered while intents, languages or interests are missing.
+- **Progress** — streak, daily goal, XP, level and achievements from the `get_my_progress` RPC (shared with the mobile app). If the RPC fails, the progress UI hides itself; nothing else depends on it.
 
-### 1. Environment Variables
-Create a `.env` file in the root directory with the following variables:
+## Design system
 
-```env
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_firebase_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_firebase_measurement_id
+The look ("Play": bright, tactile, celebratory) follows **`docs/DESIGN_SYSTEM.md`** in the main repo. Tokens live in `tailwind.config.js` (colours with light/dark CSS variables in `src/index.css`, radii, type scale, `shadow-edge-*` 3D edges). The component kit is in `src/components/ui/` and uses the same names as the Flutter app: `PressableButton`, `Tile`, `OptionCard`, `Chip`, `ProgressBar`, `ProgressRing`, `StreakChip`, `XpChip`, `LevelBadge`, `AchievementTile`, `MascotBubble`, `Celebration` (canvas confetti), `EmptyState`, `Skeleton`, `Toast`/`AchievementToast`, `SegmentedTabs`, `CircleActionButton`. Achievement definitions are in `src/lib/achievements.ts`.
 
-# GitHub OAuth
-VITE_GITHUB_CLIENT_ID=your_github_client_id
+Illustrations are Microsoft Fluent Emoji 3D (MIT) in `public/illustrations/`; the mascot is Octo (`octopus.png`). The favicons, app icons and `og-image.jpg` in `public/` are generated from `octopus.png`. Fonts: Nunito and JetBrains Mono from Google Fonts (SIL OFL). Dark mode follows the OS setting, with a toggle remembered in this browser.
 
-# GitHub API Token (for accessing GitHub API)
-VITE_GITHUB_TOKEN=your_github_token
+## How it fits with the rest of GitAlong
 
-# App Configuration
-VITE_APP_NAME=GitAlong
-VITE_APP_DESCRIPTION=Find your perfect coding partner
-VITE_APP_URL=https://gitalong.vercel.app
-```
+GitAlong has three clients of one Supabase project:
 
-### 2. Install Dependencies
+- **This website** (React).
+- **The Flutter mobile app** and **the FastAPI backend** — both in the main repo, <https://github.com/GitAlong-App/gitalong>.
+
+The contract between them lives in the main repo at **`docs/API_AND_DATA_CONTRACT.md`** (database objects, RLS rules, RPCs and REST endpoints). In short:
+
+- Core loops go straight to Supabase through RLS-protected tables and RPCs, so they work when the backend is cold: profile (`ensure_user_profile` RPC, update own `users` row), other people (`public_profiles` view — never email), swipes, matches, messages, blocks (`block_user`), reports, `mark_match_read`, `get_likes_received_count`.
+- Ranking and GitHub sync go through the backend (`GET /api/v1/recommendations`, `POST /api/v1/users/me/refresh-github`). Account deletion uses `DELETE /api/v1/users/me` with the `delete_my_account` RPC as fallback.
+- Backend calls send `Authorization: Bearer <Supabase access token>`, read from the live session right before each request (`getAccessToken()` in `src/lib/supabase.ts`). Tokens are never copied into localStorage.
+
+Shared vocabulary (intent keys and labels, language/interest options, report reasons, `PITCH_MAX`) is in `src/lib/collab.ts` and must stay in sync with the contract.
+
+## Setup
+
+Requirements: Node 18+ and npm.
+
 ```bash
 npm install
+cp .env.example .env.local   # then fill in the values
+npm run dev                  # http://localhost:3000
 ```
 
-### 3. Start Development Server
-```bash
-npm run dev
-```
+### Environment variables
 
-## Key Improvements Made
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_SUPABASE_URL` | yes | Supabase project URL. |
+| `VITE_SUPABASE_ANON_KEY` | yes | Supabase anon key (public; RLS protects the data). |
+| `VITE_BACKEND_URL` | yes | Backend origin without `/api/v1`, e.g. `https://gitalong-backend.onrender.com`. Defaults to `http://localhost:8000`. |
+| `VITE_APP_URL` | no | Public URL of the site, used for canonical/OG links. Defaults to `https://gitalong.vercel.app`. |
 
-### Authentication System
-- ✅ Firebase authentication fully configured
-- ✅ GitHub OAuth integration working
-- ✅ User state management implemented
-- ✅ Protected routes for authenticated users
+Everything prefixed `VITE_` ends up in the browser bundle — never put secrets (service-role keys, GitHub tokens) in these variables. The build works without a `.env`; sign-in and the app just won't function until Supabase is configured.
 
-### GitHub Integration
-- ✅ Removed all mock data
-- ✅ Real GitHub API calls implemented  
-- ✅ Authentication with GitHub OAuth
-- ✅ Error handling for missing GitHub token
+### GitHub sign-in
 
-### Navigation & Routing
-- ✅ Navigation system simplified and functional
-- ✅ User menu with working profile/settings
-- ✅ Clean navigation focused on core features
-- ✅ Mobile-responsive navigation
+Sign-in uses Supabase Auth's GitHub provider (scopes `read:user user:email`). In the Supabase dashboard enable the GitHub provider with your GitHub OAuth app's client ID/secret, set the GitHub OAuth app's callback URL to `https://<project>.supabase.co/auth/v1/callback`, and add your site URLs (e.g. `http://localhost:3000`, `https://gitalong.vercel.app`) to Auth → URL configuration.
 
-### Button Functionality
-- ✅ Get Started button navigates to about page or triggers signup
-- ✅ Learn More button scrolls to features section
-- ✅ Download App buttons link to app stores
-- ✅ GitHub login button functional in maintainer portal
-- ✅ Profile and Settings buttons in user menu
+## Scripts
 
-### Error Handling
-- ✅ Graceful handling of missing GitHub token
-- ✅ Firebase availability checks
-- ✅ User-friendly error messages
-- ✅ Loading states for API calls
+| Command | What it does |
+|---|---|
+| `npm run dev` | Vite dev server on port 3000. |
+| `npm run type-check` | Type-checks the app (`tsconfig.app.json`) and the Vite config (`tsconfig.node.json`). |
+| `npm run build` | Type-check, then production build into `dist/`. |
+| `npm run preview` | Serve the production build locally. |
 
-## Pages & Routes
-
-- `/` - Landing page with hero section and features
-- `/about` - About page with project story
-- `/contact` - Contact page with form
-- `/privacy` - Privacy policy page
-- `/maintainer` - Maintainer portal with GitHub login
-
-## Technologies Used
-
-- **React 18** with TypeScript
-- **Vite** for build tooling
-- **Firebase** for authentication and backend
-- **GitHub API** for developer data
-- **Tailwind CSS** for styling
-- **Framer Motion** for animations
-- **React Router** for navigation
-- **Lucide React** for icons
-
-## Development Notes
-
-- All buttons are now functional and provide meaningful interactions
-- No mock data remains - all data comes from real APIs
-- GitHub authentication is properly configured
-- User experience is smooth with proper loading states
-- Error handling is comprehensive and user-friendly
-
-## Next Steps
-
-1. **Add GitHub Token** - Get a GitHub personal access token and add it to `.env`
-2. **Configure Firebase** - Set up Firebase project and add credentials
-3. **Test Authentication** - Try signing up and logging in
-4. **Test Search** - Search for developers and view their profiles
-5. **Deploy** - Deploy to Vercel or your preferred platform
-
-## 🚀 Features
-
-- **Modern Design**: Beautiful, responsive design with smooth animations
-- **Authentication**: Firebase-powered sign in/sign up with Google and GitHub
-- **Real-time**: Live updates and notifications
-- **Mobile-First**: Optimized for all devices
-- **Performance**: Fast loading with optimized builds
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React 18 + TypeScript
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **Authentication**: Firebase Auth
-- **Database**: Firestore
-- **Deployment**: Vercel
-- **Build Tool**: Vite
-
-## 📦 Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd project
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Fill in your Firebase configuration in `.env.local`:
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key_here
-   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-   ```
-
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-## 🚀 Deployment to Vercel
-
-### Automatic Deployment (Recommended)
-
-1. **Connect to Vercel**
-   - Push your code to GitHub
-   - Connect your repository to Vercel
-   - Vercel will automatically detect the Vite configuration
-
-2. **Set Environment Variables**
-   - Go to your Vercel project dashboard
-   - Navigate to Settings → Environment Variables
-   - Add all Firebase environment variables from `.env.example`
-
-3. **Deploy**
-   - Vercel will automatically build and deploy on every push to main branch
-
-### Manual Deployment
-
-1. **Install Vercel CLI**
-   ```bash
-   npm i -g vercel
-   ```
-
-2. **Build the project**
-   ```bash
-   npm run build
-   ```
-
-3. **Deploy**
-   ```bash
-   vercel --prod
-   ```
-
-## 🔧 Build Commands
-
-```bash
-# Development
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint code
-npm run lint
-```
-
-## 📁 Project Structure
+## Project structure
 
 ```
-project/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Page components
-│   ├── contexts/      # React contexts
-│   ├── lib/           # Utility libraries
-│   └── assets/        # Static assets
-├── public/            # Public assets
-├── dist/              # Build output
-└── vercel.json        # Vercel configuration
+src/
+  components/        landing sections, app shell, discover/, marketing/, ProfileEditor, ProfileSetupWizard, …
+  components/ui/     the Play component kit (see Design system)
+  contexts/          AuthContext (session + profile), MatchesContext (matches, unread, realtime),
+                     ProgressContext (get_my_progress + celebrations), ProfileSetupContext, ThemeContext
+  lib/               supabase client + getAccessToken, collab vocabulary, row types, progress + achievements,
+                     illustrations, storage helpers, formatting, links
+  pages/             route components
+  routes/            ProtectedRoute / PublicRoute
+  services/          backendService (FastAPI), dataService (Supabase tables/RPCs), githubService (public GitHub API)
+public/              static assets, manifest, robots.txt, sitemap.xml
 ```
 
-## 🔒 Environment Variables
+## Deployment (Vercel)
 
-Make sure to set these environment variables in your Vercel deployment:
+The site is a static Vite build deployed on Vercel (`vercel.json` sets the build command, SPA rewrites and security headers).
 
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-- `VITE_FIREBASE_MEASUREMENT_ID`
+1. Import the repository in Vercel (framework preset: Vite).
+2. Add the environment variables above for Production (and Preview if needed).
+3. Deploy — every push to `main` redeploys.
 
-## 🎨 Customization
+The backend is deployed separately on Render from the main repo.
 
-### Colors
-The website uses a GitHub-inspired dark theme with green accents. Colors are defined in Tailwind CSS classes throughout the components.
+## Mobile app
 
-### Animations
-Animations are powered by Framer Motion. You can customize animations in the component files.
-
-### Content
-Update content in the component files:
-- `HeroSection.tsx` - Main hero content
-- `FeaturesSection.tsx` - Feature descriptions
-- `TestimonialsSection.tsx` - User testimonials
-- `AboutPage.tsx` - About page content
-
-## 📱 Performance
-
-- **Code Splitting**: Automatic code splitting with Vite
-- **Image Optimization**: Optimized images and assets
-- **Caching**: Proper cache headers for static assets
-- **Bundle Analysis**: Use `npm run build` to analyze bundle size
-
-## 🔍 SEO
-
-- Meta tags are configured in `index.html`
-- Open Graph tags for social sharing
-- Proper title and description tags
-
-## 🐛 Troubleshooting
-
-### Build Issues
-- Ensure all environment variables are set
-- Check that all dependencies are installed
-- Verify TypeScript compilation
-
-### Deployment Issues
-- Check Vercel build logs
-- Verify environment variables in Vercel dashboard
-- Ensure `vercel.json` is properly configured
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
----
-
-Built with ❤️ by developers, for developers. 
+The Android beta is distributed as an APK on [GitHub Releases](https://github.com/GitAlong-App/gitalong/releases); it is not in Google Play yet. iOS is coming later.

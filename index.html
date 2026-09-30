@@ -2,67 +2,72 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- SEO Meta Tags -->
-    <title>GitAlong - Find Your Perfect Coding Partner</title>
-    <meta name="description" content="Connect with developers who share your passion for coding. Find collaborators, build projects together, and stop coding alone with GitAlong." />
-    <meta name="keywords" content="developer collaboration, coding partners, GitHub, open source, programming, software development, remote work, coding community, tech collaboration, developer networking, pair programming, code review, developer tools" />
-    <meta name="author" content="GitAlong Team" />
-    <meta name="language" content="English" />
-    <meta name="revisit-after" content="7 days" />
-    <meta name="distribution" content="web" />
-    <meta name="rating" content="general" />
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="GitAlong - Find Your Perfect Coding Partner" />
-    <meta property="og:description" content="Connect with developers who share your passion for coding. Find collaborators, build projects together, and stop coding alone." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Theme before first paint: saved choice, else the OS setting (no flash). -->
+    <script>
+      (function () {
+        var dark = false;
+        try {
+          var pref = localStorage.getItem('gitalong:theme');
+          dark = pref === 'dark' || (pref !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        } catch (e) {
+          try { dark = window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e2) {}
+        }
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+
+    <!-- SEO -->
+    <title>GitAlong – Find the developer your project is missing</title>
+    <meta name="description" content="Say what you're building and who you need — a co-founder, contributors, a hackathon team or a mentor. GitAlong matches you on real GitHub work and tells you why." />
+    <meta name="keywords" content="find a co-founder, technical co-founder, side project partner, open source contributors, hackathon team, developer mentor, find a mentor, developer collaboration, GitHub, collaborator matching" />
+    <meta name="author" content="Sreevallabh Kakarala" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="GitAlong – Find the developer your project is missing" />
+    <meta property="og:description" content="Say what you're building and who you need. GitAlong matches you on real GitHub work and tells you why." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://gitalong.vercel.app" />
     <meta property="og:image" content="https://gitalong.vercel.app/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Octo, GitAlong's octopus mascot, next to the promise: find the developer your project is missing." />
     <meta property="og:site_name" content="GitAlong" />
     <meta property="og:locale" content="en_US" />
-    
-    <!-- Twitter Card Meta Tags -->
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="GitAlong - Find Your Perfect Coding Partner" />
-    <meta name="twitter:description" content="Connect with developers who share your passion for coding. Find collaborators, build projects together." />
+    <meta name="twitter:title" content="GitAlong – Find the developer your project is missing" />
+    <meta name="twitter:description" content="Co-founders, contributors, hackathon teammates and mentors — matched on intent and real GitHub work." />
     <meta name="twitter:image" content="https://gitalong.vercel.app/og-image.jpg" />
-    <meta name="twitter:site" content="@GitAlong" />
-    <meta name="twitter:creator" content="@GitAlong" />
-    
-    <!-- Favicon -->
+
+    <!-- Icons (Octo, generated from public/illustrations/octopus.png) -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    
-    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Preconnect to external domains -->
+
+    <!-- Fonts: Nunito (UI) and JetBrains Mono (code), both SIL OFL -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#2EA043" />
-    
-    <!-- Security-related tags -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
-    <!-- Note: X-Frame-Options must be set as an HTTP response header by the server, not via meta. Removed invalid meta tag. -->
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-    
-    <!-- Performance optimizations -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-    <link rel="dns-prefetch" href="https://github.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" />
     <link rel="dns-prefetch" href="https://api.github.com" />
+    <link rel="dns-prefetch" href="https://avatars.githubusercontent.com" />
+    <link rel="preload" as="image" href="/illustrations/octopus.png" type="image/png" />
+
+    <meta name="theme-color" content="#16A34A" />
+    <!-- Security headers (X-Frame-Options, nosniff, …) are sent by Vercel; see vercel.json. -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <p style="font-family: system-ui, sans-serif; padding: 24px; text-align: center">
+        GitAlong needs JavaScript to run. Please enable it and reload the page.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

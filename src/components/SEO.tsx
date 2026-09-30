@@ -1,5 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { SITE_URL } from '../lib/links';
 
 interface SEOProps {
   title?: string;
@@ -17,14 +18,16 @@ interface SEOProps {
   canonicalUrl?: string;
 }
 
-const DEFAULT_SEO = {
-  title: 'GitAlong - Find Your Perfect Coding Partner',
-  description: 'Connect with developers who share your passion for coding. Find collaborators, build projects together, and stop coding alone with GitAlong.',
-  keywords: 'developer collaboration, coding partners, GitHub, open source, programming, software development, remote work, coding community, tech collaboration, developer networking',
-  image: 'https://GitAlong.vercel.app/og-image.png',
-  url: 'https://GitAlong.vercel.app',
+export const DEFAULT_SEO = {
+  title: 'GitAlong – Find the developer your project is missing',
+  description:
+    'Say what you’re building and who you need — a co-founder, contributors, a hackathon team or a mentor. GitAlong matches you on real GitHub work and tells you why.',
+  keywords:
+    'find a co-founder, technical co-founder, side project partner, open source contributors, hackathon team, developer mentor, find a mentor, developer collaboration, GitHub, collaborator matching',
+  image: `${SITE_URL}/og-image.jpg`,
+  url: SITE_URL,
   type: 'website',
-  author: 'GitAlong Team'
+  author: 'Sreevallabh Kakarala',
 };
 
 export const SEO: React.FC<SEOProps> = ({
@@ -40,30 +43,25 @@ export const SEO: React.FC<SEOProps> = ({
   section,
   tags,
   noIndex = false,
-  canonicalUrl
+  canonicalUrl,
 }) => {
-  const seoTitle = title ? `${title} | GitAlong` : DEFAULT_SEO.title;
+  const seoTitle = title ? (title.includes('GitAlong') ? title : `${title} | GitAlong`) : DEFAULT_SEO.title;
   const seoDescription = description || DEFAULT_SEO.description;
   const seoKeywords = keywords || DEFAULT_SEO.keywords;
   const seoImage = image || DEFAULT_SEO.image;
-  const seoUrl = url || DEFAULT_SEO.url;
+  const seoUrl = !url ? DEFAULT_SEO.url : url.startsWith('http') ? url : `${SITE_URL}${url === '/' ? '' : url}`;
   const seoAuthor = author || DEFAULT_SEO.author;
 
   return (
     <Helmet>
-      {/* Basic Meta Tags */}
       <title>{seoTitle}</title>
       <meta name="description" content={seoDescription} />
       <meta name="keywords" content={seoKeywords} />
       <meta name="author" content={seoAuthor} />
-      
-      {/* Canonical URL */}
+
       <link rel="canonical" href={canonicalUrl || seoUrl} />
-      
-      {/* Robots Meta Tag */}
       {noIndex && <meta name="robots" content="noindex,nofollow" />}
-      
-      {/* Open Graph Meta Tags */}
+
       <meta property="og:title" content={seoTitle} />
       <meta property="og:description" content={seoDescription} />
       <meta property="og:type" content={type} />
@@ -73,45 +71,19 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content="GitAlong" />
       <meta property="og:locale" content="en_US" />
-      
-      {/* Article specific Open Graph tags */}
-      {type === 'article' && publishedTime && (
-        <meta property="article:published_time" content={publishedTime} />
-      )}
-      {type === 'article' && modifiedTime && (
-        <meta property="article:modified_time" content={modifiedTime} />
-      )}
-      {type === 'article' && section && (
-        <meta property="article:section" content={section} />
-      )}
-      {type === 'article' && tags && tags.map((tag, index) => (
-        <meta key={index} property="article:tag" content={tag} />
-      ))}
-      
-      {/* Twitter Card Meta Tags */}
+
+      {type === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+      {type === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+      {type === 'article' && section && <meta property="article:section" content={section} />}
+      {type === 'article' && tags && tags.map((tag) => <meta key={tag} property="article:tag" content={tag} />)}
+
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={seoTitle} />
       <meta name="twitter:description" content={seoDescription} />
       <meta name="twitter:image" content={seoImage} />
-      <meta name="twitter:site" content="@GitAlong" />
-      <meta name="twitter:creator" content="@GitAlong" />
-      
-      {/* Additional SEO Meta Tags */}
-      <meta name="theme-color" content="#2ECC71" />
-      <meta name="msapplication-TileColor" content="#2ECC71" />
+
+      <meta name="theme-color" content="#16A34A" />
       <meta name="application-name" content="GitAlong" />
-      
-      {/* Performance and Security */}
-      <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-      {/* Note: X-Frame-Options must be set as HTTP header, not meta tag */}
-      <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
-      <meta name="referrer" content="strict-origin-when-cross-origin" />
-      
-      {/* Preconnect to external domains */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      <link rel="preconnect" href="https://api.github.com" />
-      <link rel="dns-prefetch" href="https://github.com" />
     </Helmet>
   );
 };

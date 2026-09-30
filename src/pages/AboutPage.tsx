@@ -1,287 +1,138 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Users, Heart, GitBranch, Zap, ArrowRight, Code, MessageSquare } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { Breadcrumbs, BreadcrumbStructuredData } from '../components/Breadcrumbs';
-import toast from 'react-hot-toast';
+import { AppStoreButton } from '../components/AppStoreButton';
+import { PageHero, Section, SectionHeading } from '../components/marketing/Section';
+import { Illustration, PressableLink, Tile } from '../components/ui';
+import type { IllustrationName } from '../lib/illustrations';
+import { inView } from '../lib/motion';
 
-export const AboutPage: React.FC = () => {
-  const handleDownloadApp = () => {
-    toast('The app is not ready to be published yet. Check back in a few months.', {
-      icon: '🚧',
-    });
-  };
+const principles: Array<{ art: IllustrationName; title: string; description: string }> = [
+  {
+    art: 'rocket',
+    title: 'Match for a reason',
+    description: 'You say what you want — a co-founder, contributors, a hackathon team, a mentor — and matching starts there.',
+  },
+  {
+    art: 'laptop',
+    title: 'Work over words',
+    description: 'Profiles are anchored in real GitHub activity, so you can see what someone has actually built.',
+  },
+  {
+    art: 'light_bulb',
+    title: 'Explain every match',
+    description: 'No black box: each recommendation tells you why it was made.',
+  },
+];
 
-  return (
-    <div className="min-h-screen bg-[#0D1117]">
-      <SEO
-        title="About GitAlong - Our Story & Mission"
-        description="Learn about GitAlong's mission to connect developers worldwide. Discover how we're building a community where coders find perfect partners for collaboration and project development."
-        keywords="about GitAlong, developer community, coding collaboration platform, software development team, open source community, programming partnerships, developer networking"
-        url="https://GitAlong.vercel.app/about"
-        type="website"
-      />
-      
-      {/* Hero Section */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0D1117] via-[#161B22] to-[#0D1117]"></div>
-        
-        {/* Animated Background Elements */}
-        <motion.div
-          className="absolute top-20 left-20 w-32 h-32 bg-[#2ECC71]/10 rounded-full"
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-20 w-40 h-40 bg-[#2ecc71]/10 rounded-full"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.1, 0.15, 0.1],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Breadcrumbs 
-            items={[
-              { label: 'About', isActive: true }
-            ]} 
-          />
-          <BreadcrumbStructuredData 
-            items={[
-              { label: 'About', href: '/about' }
-            ]} 
-          />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white to-[#2ECC71] bg-clip-text text-transparent">
-              About GitAlong
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              A student's solution to the real problem of finding coding partners and collaborators.
+const steps: Array<{ art: IllustrationName; title: string; description: string }> = [
+  { art: 'key', title: 'Connect GitHub', description: 'Sign in with GitHub. Your public repos, languages and stars form your profile.' },
+  { art: 'memo', title: 'Say what you need', description: 'Pick your intent, pitch what you’re building and list the skills you want in a partner.' },
+  { art: 'handshake', title: 'Match and talk', description: 'Swipe with context, match when it’s mutual, and chat in real time.' },
+];
+
+export const AboutPage: React.FC = () => (
+  <div>
+    <SEO
+      title="About"
+      description="Why GitAlong exists: finding the right people to build with is harder than building. GitAlong matches developers on intent, complementary skills and real GitHub work."
+      url="/about"
+    />
+    <BreadcrumbStructuredData items={[{ label: 'About', href: '/about' }]} />
+
+    <PageHero
+      eyebrow="About GitAlong"
+      title="Finding people to build with shouldn’t be harder than building."
+      art={<Illustration name="octopus" size={160} priority className="motion-safe:animate-bob" />}
+    >
+      <Breadcrumbs items={[{ label: 'About', isActive: true }]} className="mt-6 justify-center md:justify-start" />
+    </PageHero>
+
+    <Section>
+      <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+        <motion.div {...inView()}>
+          <p className="mb-3 type-caption text-green-fg">From the founder</p>
+          <h2 className="text-[30px] font-black leading-[1.1] text-ink sm:text-[36px]">Why I built it</h2>
+          <div className="mt-5 space-y-5 text-[18px] font-semibold leading-relaxed text-ink-muted">
+            <p>
+              As a computer science student I kept running into the same wall: I had ideas, but finding people to build them with was
+              hard. Classmates were busy, friends weren’t into coding, and cold-messaging developers on GitHub felt awkward and rarely
+              worked.
             </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Story Section */}
-      <section className="py-20 bg-[#161B22]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-4xl font-bold text-white mb-6">
-                The Problem I Solved
-              </h2>
-              <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                As a computer science student, I was constantly struggling to find people to work on projects with. 
-                My classmates were busy, my friends weren't into coding, and cold messaging developers on GitHub felt awkward and rarely worked.
-              </p>
-              <p className="text-gray-300 text-lg leading-relaxed mb-6">
-                I realized this was a universal problem - developers everywhere were coding alone, missing out on 
-                collaboration opportunities, and struggling to find partners for their projects. That's when I decided 
-                to build GitAlong.
-              </p>
-              <p className="text-gray-300 text-lg leading-relaxed">
-                GitAlong makes it easy to discover developers who share your interests, skills, and goals. 
-                No more awkward cold messages or endless searching - just meaningful connections that lead to 
-                amazing projects.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="bg-gradient-to-br from-[#2ECC71] to-[#2ecc71] p-8 rounded-2xl">
-                <div className="bg-[#0D1117] p-6 rounded-xl">
-                  <h3 className="text-2xl font-bold text-white mb-4">My Mission</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    To eliminate the loneliness of coding and make collaboration accessible to every developer, 
-                    regardless of their experience level or background.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+            <p>
+              The first version of GitAlong was “swipe on developers who use the same languages as you”. It turned out that similarity
+              isn’t what makes a good collaborator — a project needs people who want the same thing and bring the skills it’s missing.
+            </p>
+            <p>
+              So GitAlong now asks why you’re here and what you’re building, matches you with people whose goals fit and whose GitHub
+              work shows the skills you need, and tells you why each match was made.
+            </p>
           </div>
-        </div>
-      </section>
+          <p className="mt-6 text-body font-bold text-ink">
+            — Sreevallabh Kakarala,{' '}
+            <Link to="/team" className="link">
+              founder
+            </Link>
+          </p>
+        </motion.div>
 
-      {/* Values Section */}
-      <section className="py-20 bg-[#0D1117]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-white mb-6">
-              What I Believe In
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              These principles guide everything I do at GitAlong
+        <motion.div {...inView(1)}>
+          <Tile tone="green" padding="lg">
+            <Illustration name="globe" size={64} />
+            <h3 className="mt-4 text-h2 text-ink">The mission</h3>
+            <p className="mt-2 text-body text-ink">
+              Help every developer find the people their project is missing — whether that’s a co-founder, contributors, a hackathon team
+              or a mentor — regardless of who they already know.
             </p>
+          </Tile>
+        </motion.div>
+      </div>
+    </Section>
+
+    <Section className="border-y-2 border-border bg-surface">
+      <SectionHeading eyebrow="What we believe" title="Principles" />
+      <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+        {principles.map(({ art, title, description }, index) => (
+          <motion.div key={title} {...inView(index)}>
+            <Tile padding="lg" className="h-full text-center">
+              <Illustration name={art} size={72} className="mx-auto" />
+              <h3 className="mt-4 text-h2 text-ink">{title}</h3>
+              <p className="mt-2 text-body text-ink-muted">{description}</p>
+            </Tile>
           </motion.div>
+        ))}
+      </div>
+    </Section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Users,
-                title: "Community First",
-                description: "I believe in the power of community and fostering meaningful connections between developers."
-              },
-              {
-                icon: Heart,
-                title: "Authentic Connections",
-                description: "I prioritize genuine, verified profiles to ensure quality matches and meaningful collaborations."
-              },
-              {
-                icon: GitBranch,
-                title: "Open Source Spirit",
-                description: "I'm committed to the open-source ethos of collaboration, transparency, and shared knowledge."
-              }
-            ].map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center p-8 rounded-2xl bg-[#161B22] border border-[#30363D] hover:border-[#2ECC71] transition-all duration-300"
-                whileHover={{ y: -5 }}
-              >
-                <motion.div 
-                  className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] mb-6"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  {(() => { const Icon = value.icon; return <Icon className="h-8 w-8 text-white" /> })()}
-                </motion.div>
-                <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
-                <p className="text-gray-300">{value.description}</p>
-              </motion.div>
-            ))}
-          </div>
+    <Section>
+      <SectionHeading eyebrow="How it works" title="Three steps to your people" />
+      <ol className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+        {steps.map(({ art, title, description }, index) => (
+          <motion.li key={title} {...inView(index)} className="relative rounded-xl border-2 border-border bg-card p-6 pt-8 text-center shadow-edge-tile">
+            <span className="absolute -top-5 left-1/2 flex h-10 w-10 -translate-x-1/2 items-center justify-center rounded-full bg-green text-[18px] font-black text-white shadow-edge-green">
+              {index + 1}
+            </span>
+            <Illustration name={art} size={72} className="mx-auto" />
+            <h3 className="mt-4 text-h2 text-ink">{title}</h3>
+            <p className="mt-2 text-body text-ink-muted">{description}</p>
+          </motion.li>
+        ))}
+      </ol>
+    </Section>
+
+    <Section className="border-t-2 border-border bg-surface">
+      <motion.div {...inView()} className="mx-auto max-w-2xl text-center">
+        <Illustration name="waving_hand" size={72} className="mx-auto" />
+        <h2 className="mt-4 text-[30px] font-black leading-[1.1] text-ink sm:text-[36px]">Try it</h2>
+        <p className="mt-3 text-[18px] font-semibold text-ink-muted">Use GitAlong on the web right now, or grab the Android beta.</p>
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <PressableLink to="/">Get started on the web</PressableLink>
+          <AppStoreButton platform="android" />
+          <AppStoreButton platform="ios" />
         </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-20 bg-[#161B22]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-white mb-6">
-              How GitAlong Works
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Simple, effective, and designed for real developers
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Code,
-                title: "Connect Your GitHub",
-                description: "Link your GitHub account to showcase your real projects, skills, and contributions."
-              },
-              {
-                icon: MessageSquare,
-                title: "Discover Developers",
-                description: "Browse through developers who match your interests, skills, and project goals."
-              },
-              {
-                icon: Heart,
-                title: "Start Collaborating",
-                description: "Connect with developers, start conversations, and build amazing projects together."
-              }
-            ].map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="text-center p-8 rounded-2xl bg-[#0D1117] border border-[#30363D] hover:border-[#2ECC71] transition-all duration-300"
-                whileHover={{ y: -5 }}
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#2ECC71] text-white font-bold text-lg mb-4">
-                  {index + 1}
-                </div>
-                <motion.div 
-                  className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] mb-6"
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  {(() => { const Icon = step.icon; return <Icon className="h-8 w-8 text-white" /> })()}
-                </motion.div>
-                <h3 className="text-xl font-bold text-white mb-4">{step.title}</h3>
-                <p className="text-gray-300">{step.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-[#0D1117]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl font-bold text-white mb-6">
-              Ready to Find Your Coding Partner?
-            </h2>
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join the community of developers who are tired of coding alone. 
-              Connect with like-minded developers and build something amazing together.
-            </p>
-            <motion.button
-              onClick={handleDownloadApp}
-              className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#2ECC71] to-[#2ecc71] text-white font-semibold rounded-2xl text-lg shadow-2xl hover:shadow-[#2ECC71]/25 transition-all duration-300 hover:scale-105"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Zap className="h-5 w-5 mr-2" />
-              Download GitAlong
-              <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-            </motion.button>
-          </motion.div>
-        </div>
-      </section>
-    </div>
-  );
-};
+      </motion.div>
+    </Section>
+  </div>
+);
