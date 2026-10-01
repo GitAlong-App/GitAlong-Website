@@ -4,7 +4,7 @@ The web app and marketing site for **GitAlong** — *find the developer your pro
 
 People say why they're here (co-founder, side-project partner, open-source collaborators, hackathon teammates, mentoring or looking for a mentor), what they're building (a ≤280-character pitch) and which skills they want in a partner. GitAlong recommends collaborators with compatible intent and complementary skills, shows their real GitHub work, and explains each match ("You're both looking for a co-founder", "Knows TypeScript — a skill you want").
 
-Live at <https://gitalong.vercel.app>.
+Live at <https://gitalong.app>.
 
 ## What's in here
 
@@ -61,13 +61,13 @@ npm run dev                  # http://localhost:3000
 | `VITE_SUPABASE_URL` | yes | Supabase project URL. |
 | `VITE_SUPABASE_ANON_KEY` | yes | Supabase anon key (public; RLS protects the data). |
 | `VITE_BACKEND_URL` | yes | Backend origin without `/api/v1`, e.g. `https://gitalong-backend.onrender.com`. Defaults to `http://localhost:8000`. |
-| `VITE_APP_URL` | no | Public URL of the site, used for canonical/OG links. Defaults to `https://gitalong.vercel.app`. |
+| `VITE_APP_URL` | no | Public URL of the site, used for canonical/OG links. Defaults to `https://gitalong.app`. |
 
 Everything prefixed `VITE_` ends up in the browser bundle — never put secrets (service-role keys, GitHub tokens) in these variables. The build works without a `.env`; sign-in and the app just won't function until Supabase is configured.
 
 ### GitHub sign-in
 
-Sign-in uses Supabase Auth's GitHub provider (scopes `read:user user:email`). In the Supabase dashboard enable the GitHub provider with your GitHub OAuth app's client ID/secret, set the GitHub OAuth app's callback URL to `https://<project>.supabase.co/auth/v1/callback`, and add your site URLs (e.g. `http://localhost:3000`, `https://gitalong.vercel.app`) to Auth → URL configuration.
+Sign-in uses Supabase Auth's GitHub provider (scopes `read:user user:email`). In the Supabase dashboard enable the GitHub provider with your GitHub OAuth app's client ID/secret and set the GitHub OAuth app's callback URL to `https://<project>.supabase.co/auth/v1/callback`. Under **Authentication → URL Configuration** set the Site URL to `https://gitalong.app` and add every origin you sign in from to Redirect URLs: `https://gitalong.app/**`, `https://www.gitalong.app/**`, `https://gitalong-preview.vercel.app/**`, `http://localhost:5173/**` and `http://127.0.0.1:5173/**` (plus `app.gitalong://login-callback/` for the mobile app). Supabase sends users to the Site URL when the page they signed in from isn't on that list.
 
 ## Scripts
 

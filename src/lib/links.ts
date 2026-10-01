@@ -5,4 +5,4 @@ export const APK_RELEASES_URL = `${GITHUB_REPO_URL}/releases`;
 export const FOUNDER_GITHUB_URL = 'https://github.com/sreevallabh04';
 export const WEBSITE_REPO_URL = 'https://github.com/GitAlong-App/GitAlong-Website';
 export const CONTACT_EMAIL = 'srivallabhkakarala@gmail.com';
-export const SITE_URL = (import.meta.env.VITE_APP_URL || 'https://gitalong.vercel.app').replace(/\/+$/, '');
+export const SITE_URL = (import.meta.env.VITE_APP_URL || 'https://gitalong.app').replace(/\/+$/, '');

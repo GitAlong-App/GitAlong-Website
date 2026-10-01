@@ -1,4 +1,4 @@
-# robots.txt for GitAlong - https://gitalong.vercel.app
+# robots.txt for GitAlong - https://gitalong.app
 # Developer Collaboration Platform
 
 User-agent: *
@@ -37,4 +37,4 @@ Allow: /*.ico$
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://gitalong.vercel.app/sitemap.xml 
+Sitemap: https://gitalong.app/sitemap.xml 

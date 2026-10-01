@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
+import { oauthRedirectError, supabase } from '../lib/supabase';
 import type { ProfileUpdate, UserProfile } from '../lib/types';
 import { ensureUserProfile, updateMyProfile } from '../services/dataService';
 import { backendService } from '../services/backendService';
@@ -103,6 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // storage unavailable
     }
+
+    if (oauthRedirectError) toast.error(oauthRedirectError, { id: 'oauth-error', duration: 8000 });
 
     if (!supabase) {
       setLoading(false);

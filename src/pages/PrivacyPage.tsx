@@ -52,7 +52,7 @@ export const PrivacyPage: React.FC = () => (
     <div className="gutter mx-auto max-w-3xl space-y-6 py-12 md:py-16">
       <Section id="who" title="Who we are" art="waving_hand">
         <p>
-          GitAlong (the website at gitalong.vercel.app and the GitAlong mobile app) is an independent project run by Sreevallabh Kakarala.
+          GitAlong (the website at gitalong.app and the GitAlong mobile app) is an independent project run by Sreevallabh Kakarala.
           Contact:{' '}
           <a href={`mailto:${CONTACT_EMAIL}`} className="link">
             {CONTACT_EMAIL}
